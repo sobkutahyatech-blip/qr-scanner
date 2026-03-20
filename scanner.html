@@ -1,10 +1,10 @@
-<!-- scanner.html - مسح QR مع رسائل تفصيلية -->
+<!-- scanner.html - قارئ QR المتكامل -->
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>مسح QR - نظام الحضور</title>
+    <title>قارئ QR - نظام حضور التخرج</title>
     <style>
         * {
             margin: 0;
@@ -13,9 +13,10 @@
         }
         
         body {
-            font-family: 'Cairo', sans-serif;
+            font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: #000;
             color: white;
+            overflow: hidden;
         }
         
         .scanner-container {
@@ -44,23 +45,23 @@
         }
         
         .header {
-            background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
-            padding: 50px 20px 30px;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent);
+            padding: 40px 20px 30px;
             text-align: center;
         }
         
         .header h2 {
             color: white;
-            font-size: 1.8rem;
+            font-size: 1.6rem;
             margin-bottom: 5px;
         }
         
         .header p {
             color: #c19a3f;
-            font-size: 1rem;
+            font-size: 0.9rem;
         }
         
-        .counter {
+        .counter-badge {
             background: #c19a3f;
             color: #005629;
             padding: 5px 15px;
@@ -68,6 +69,7 @@
             font-weight: bold;
             display: inline-block;
             margin-top: 10px;
+            font-size: 0.9rem;
         }
         
         .scan-frame {
@@ -77,7 +79,7 @@
             margin: 0 auto;
             border: 3px solid #c19a3f;
             border-radius: 30px;
-            box-shadow: 0 0 0 9999px rgba(0,0,0,0.6);
+            box-shadow: 0 0 0 9999px rgba(0,0,0,0.7);
         }
         
         .scan-line {
@@ -88,6 +90,7 @@
             height: 3px;
             background: #c19a3f;
             animation: scan 2s linear infinite;
+            box-shadow: 0 0 10px #c19a3f;
         }
         
         @keyframes scan {
@@ -97,8 +100,8 @@
         }
         
         .footer {
-            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
-            padding: 30px 20px 50px;
+            background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+            padding: 30px 20px 40px;
             text-align: center;
         }
         
@@ -124,16 +127,16 @@
             color: black;
         }
         
-        /* نافذة النتائج - تصميم جديد */
-        .result-panel {
+        /* نافذة النتائج */
+        .result-card {
             position: absolute;
             bottom: 100px;
-            left: 20px;
-            right: 20px;
+            left: 15px;
+            right: 15px;
             background: rgba(0,0,0,0.95);
-            border-radius: 20px;
-            padding: 20px;
             backdrop-filter: blur(10px);
+            border-radius: 25px;
+            padding: 20px;
             border-right: 6px solid;
             display: none;
             animation: slideUp 0.3s ease;
@@ -146,80 +149,69 @@
             to { transform: translateY(0); opacity: 1; }
         }
         
-        .result-panel.success {
-            border-right-color: #28a745;
-        }
-        
-        .result-panel.error {
-            border-right-color: #dc3545;
-        }
-        
-        .result-panel.warning {
-            border-right-color: #ffc107;
-        }
-        
-        .result-panel.info {
-            border-right-color: #17a2b8;
-        }
+        .result-card.success { border-right-color: #28a745; }
+        .result-card.error { border-right-color: #dc3545; }
+        .result-card.warning { border-right-color: #ffc107; }
+        .result-card.info { border-right-color: #17a2b8; }
         
         .result-header {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
             margin-bottom: 15px;
-            font-size: 1.3rem;
+            font-size: 1.2rem;
             font-weight: bold;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
         }
         
-        .result-header i {
-            font-size: 1.8rem;
-        }
+        .result-header i { font-size: 1.8rem; }
         
-        .result-content {
-            padding-right: 10px;
-        }
+        .result-content { padding-right: 5px; }
         
         .result-row {
             display: flex;
             justify-content: space-between;
             padding: 8px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
         }
         
         .result-label {
             color: #aaa;
             font-weight: 500;
+            font-size: 0.9rem;
         }
         
         .result-value {
             color: white;
             font-weight: 600;
+            font-size: 0.9rem;
+            text-align: left;
         }
         
-        .status-badge {
+        /* عداد المسح */
+        .scan-stats {
             position: absolute;
             bottom: 20px;
-            right: 20px;
+            right: 15px;
             background: rgba(0,0,0,0.7);
-            color: white;
+            backdrop-filter: blur(5px);
             padding: 8px 15px;
             border-radius: 50px;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             border: 1px solid #c19a3f;
             pointer-events: none;
+            z-index: 100;
         }
         
-        .status-badge i {
-            color: #28a745;
-            margin-left: 5px;
-        }
+        .scan-stats i { color: #28a745; margin-left: 5px; }
         
-        /* مؤقت الإشعار الصغير */
+        /* إشعار سريع */
         .toast {
             position: absolute;
             top: 100px;
-            left: 20px;
-            right: 20px;
+            left: 15px;
+            right: 15px;
             background: rgba(0,0,0,0.9);
             border-radius: 50px;
             padding: 12px 20px;
@@ -228,66 +220,76 @@
             z-index: 2000;
             animation: fadeInOut 0.3s ease;
             pointer-events: none;
+            font-size: 0.9rem;
         }
         
         @keyframes fadeInOut {
             0% { opacity: 0; transform: translateY(-20px); }
-            10% { opacity: 1; transform: translateY(0); }
-            90% { opacity: 1; transform: translateY(0); }
+            15% { opacity: 1; transform: translateY(0); }
+            85% { opacity: 1; transform: translateY(0); }
             100% { opacity: 0; transform: translateY(-20px); }
         }
         
+        /* حالة الكاميرا */
+        .camera-status {
+            position: absolute;
+            top: 20px;
+            left: 15px;
+            background: rgba(0,0,0,0.6);
+            padding: 6px 12px;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            pointer-events: none;
+            z-index: 100;
+        }
+        
+        .camera-status i { margin-left: 5px; }
+        .camera-status.active i { color: #28a745; }
+        
         @media (max-width: 768px) {
-            .scan-frame {
-                width: 250px;
-                height: 250px;
-            }
-            
-            .header h2 {
-                font-size: 1.5rem;
-            }
-            
-            .result-panel {
-                bottom: 80px;
-                padding: 15px;
-            }
-            
-            .result-header {
-                font-size: 1.1rem;
-            }
+            .scan-frame { width: 250px; height: 250px; }
+            .header h2 { font-size: 1.3rem; }
+            .result-card { bottom: 80px; padding: 15px; }
+            .result-header { font-size: 1rem; }
+            .result-row { padding: 6px 0; }
         }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
     <div class="scanner-container">
-        <video id="preview" playsinline></video>
+        <video id="preview" playsinline autoplay></video>
         
-        <!-- نافذة النتائج الرئيسية -->
-        <div id="resultPanel" class="result-panel">
-            <div class="result-header" id="resultHeader">
+        <!-- حالة الكاميرا -->
+        <div class="camera-status" id="cameraStatus">
+            <i class="fas fa-circle"></i> جاري التشغيل...
+        </div>
+        
+        <!-- نافذة النتائج -->
+        <div id="resultCard" class="result-card">
+            <div class="result-header">
                 <i id="resultIcon" class="fas fa-check-circle"></i>
-                <span id="resultTitle">تم المسح بنجاح</span>
+                <span id="resultTitle">تم المسح</span>
             </div>
             <div class="result-content" id="resultContent"></div>
         </div>
         
-        <!-- إشعار سريع (toast) -->
+        <!-- إشعار سريع -->
         <div id="toast" class="toast">
             <span id="toastMessage"></span>
         </div>
         
         <!-- عداد المسح -->
-        <div class="status-badge">
-            <i class="fas fa-check-circle"></i>
-            <span id="scanCounter">0</span> تم مسحهم
+        <div class="scan-stats">
+            <i class="fas fa-users"></i>
+            <span id="scanCounter">0</span> تم تسجيلهم
         </div>
         
         <div class="overlay">
             <div class="header">
-                <h2>نظام حضور التخرج</h2>
-                <p>ضع رمز QR داخل الإطار</p>
-                <div class="counter" id="liveCounter">0</div>
+                <h2><i class="fas fa-graduation-cap"></i> نظام حضور التخرج</h2>
+                <p>ضع رمز QR داخل الإطار للمسح التلقائي</p>
+                <div class="counter-badge" id="liveCounter">0</div>
             </div>
             
             <div class="scan-frame">
@@ -304,18 +306,23 @@
 
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
     <script>
+        // المتغيرات
         let videoStream = null;
         let scanInterval = null;
         let scanCount = 0;
         let lastScanTime = 0;
         let isProcessing = false;
-        let currentQRData = null;
-
+        let cameraActive = false;
+        
+        // بدء التشغيل
         document.addEventListener('DOMContentLoaded', function() {
             startCamera();
         });
-
+        
+        // تشغيل الكاميرا
         function startCamera() {
+            updateCameraStatus('جاري طلب الإذن...', 'warning');
+            
             navigator.mediaDevices.getUserMedia({ 
                 video: { 
                     facingMode: 'environment',
@@ -328,22 +335,27 @@
                 const video = document.getElementById('preview');
                 video.srcObject = stream;
                 video.play();
+                cameraActive = true;
+                updateCameraStatus('الكاميرا جاهزة', 'active');
                 startScanning();
-                showToast('✅ الكاميرا جاهزة', 2000);
+                showToast('✅ الكاميرا جاهزة للعمل', 2000);
             })
             .catch(function(error) {
                 console.error('Camera error:', error);
-                showResult('error', '❌ خطأ في الكاميرا', 'تأكد من منح إذن الوصول للكاميرا');
+                cameraActive = false;
+                updateCameraStatus('❌ تعذر الوصول للكاميرا', 'error');
+                showToast('❌ تعذر الوصول للكاميرا - تأكد من الإذن', 3000);
             });
         }
-
+        
+        // بدء المسح المستمر
         function startScanning() {
             const video = document.getElementById('preview');
             const canvas = document.createElement('canvas');
             const context = canvas.getContext('2d');
             
             scanInterval = setInterval(() => {
-                if (video.readyState === video.HAVE_ENOUGH_DATA && !isProcessing) {
+                if (video.readyState === video.HAVE_ENOUGH_DATA && !isProcessing && cameraActive) {
                     canvas.width = video.videoWidth;
                     canvas.height = video.videoHeight;
                     context.drawImage(video, 0, 0, canvas.width, canvas.height);
@@ -355,7 +367,7 @@
                     
                     if (code) {
                         const now = Date.now();
-                        if (now - lastScanTime > 1500) { // ثانية ونصف بين كل مسح
+                        if (now - lastScanTime > 1500) {
                             lastScanTime = now;
                             handleScanResult(code.data);
                         }
@@ -363,7 +375,8 @@
                 }
             }, 200);
         }
-
+        
+        // معالجة نتيجة المسح
         async function handleScanResult(content) {
             if (isProcessing) return;
             
@@ -371,48 +384,50 @@
                 const data = JSON.parse(content);
                 
                 if (!data || !data.id) {
-                    showResult('error', '❌ رمز QR غير صالح', 'الرمز الذي تم مسحه غير صالح');
+                    showResult('error', '❌ رمز غير صالح', '<p style="text-align:center;">الرمز الذي تم مسحه غير صالح</p>');
                     return;
                 }
-
-                isProcessing = true;
                 
-                // إرسال للتحقق من الحالة أولاً
+                isProcessing = true;
                 await checkGraduateStatus(data.id);
                 
             } catch (error) {
-                showResult('error', '❌ خطأ', 'الرمز غير صالح');
+                showResult('error', '❌ خطأ', '<p style="text-align:center;">الرمز غير صالح</p>');
                 isProcessing = false;
             }
         }
-
+        
+        // التحقق من حالة الخريج
         function checkGraduateStatus(registrationId) {
             return new Promise((resolve) => {
-                // إرسال طلب للتحقق من حالة الخريج
                 google.script.run
                     .withSuccessHandler(function(status) {
                         if (status.exists) {
                             if (status.attended) {
-                                // خريج مسجل لكن حضر مسبقاً
+                                // تم تسجيله مسبقاً
                                 showResult(
                                     'warning',
                                     '⚠️ تم تسجيل الحضور مسبقاً',
                                     `
                                         <div class="result-row">
                                             <span class="result-label">الاسم:</span>
-                                            <span class="result-value">${status.fullName || '-'}</span>
+                                            <span class="result-value">${status.fullName}</span>
                                         </div>
                                         <div class="result-row">
                                             <span class="result-label">الجامعة:</span>
-                                            <span class="result-value">${status.university || '-'}</span>
+                                            <span class="result-value">${status.university}</span>
+                                        </div>
+                                        <div class="result-row">
+                                            <span class="result-label">الكلية:</span>
+                                            <span class="result-value">${status.faculty}</span>
                                         </div>
                                         <div class="result-row">
                                             <span class="result-label">سنة التخرج:</span>
-                                            <span class="result-value">${status.graduationYear || '-'}</span>
+                                            <span class="result-value">${status.graduationYear}</span>
                                         </div>
                                         <div class="result-row">
-                                            <span class="result-label">الحالة:</span>
-                                            <span class="result-value" style="color: #ffc107;">تم تسجيل الحضور سابقاً</span>
+                                            <span class="result-label">وقت التسجيل:</span>
+                                            <span class="result-value">${status.attendanceTime || 'غير مسجل'}</span>
                                         </div>
                                     `,
                                     'warning'
@@ -420,14 +435,14 @@
                                 isProcessing = false;
                                 resolve({ success: false, attended: true });
                             } else {
-                                // خريج موجود ولم يحضر بعد - قم بتسجيل الحضور
+                                // خريج جديد - سجل حضوره
                                 registerAttendance(registrationId, status);
                             }
                         } else {
-                            // خريج غير موجود في النظام
+                            // غير مسجل
                             showResult(
                                 'error',
-                                '❌ غير مسجل',
+                                '❌ غير مسجل في النظام',
                                 `
                                     <div class="result-row">
                                         <span class="result-label">رقم التسجيل:</span>
@@ -435,11 +450,11 @@
                                     </div>
                                     <div class="result-row">
                                         <span class="result-label">الحالة:</span>
-                                        <span class="result-value" style="color: #dc3545;">غير مسجل في النظام</span>
+                                        <span class="result-value" style="color: #dc3545;">غير مسجل</span>
                                     </div>
                                     <div class="result-row">
                                         <span class="result-label">نصيحة:</span>
-                                        <span class="result-value">تأكد من صحة الرقم أو استخدم الإدخال اليدوي</span>
+                                        <span class="result-value">يرجى التأكد من الرقم أو استخدام الإدخال اليدوي</span>
                                     </div>
                                 `,
                                 'error'
@@ -449,57 +464,62 @@
                         }
                     })
                     .withFailureHandler(function(error) {
-                        showResult('error', '❌ خطأ في الاتصال', 'حدث خطأ في التحقق من البيانات');
+                        showResult('error', '❌ خطأ في الاتصال', '<p style="text-align:center;">حدث خطأ في التحقق من البيانات</p>');
                         isProcessing = false;
                         resolve({ success: false });
                     })
                     .checkGraduateStatus(registrationId);
             });
         }
-
+        
+        // تسجيل الحضور
         function registerAttendance(registrationId, graduateInfo) {
-            // تسجيل الحضور
             google.script.run
                 .withSuccessHandler(function(result) {
                     if (result && result.success) {
-                        // زيادة العداد
                         scanCount++;
-                        updateCounter();
+                        updateCounters();
                         
-                        // عرض نتيجة النجاح
                         showResult(
                             'success',
                             '✅ تم تسجيل الحضور',
                             `
                                 <div class="result-row">
                                     <span class="result-label">الاسم:</span>
-                                    <span class="result-value">${graduateInfo.fullName || '-'}</span>
+                                    <span class="result-value">${graduateInfo.fullName}</span>
                                 </div>
                                 <div class="result-row">
                                     <span class="result-label">الجامعة:</span>
-                                    <span class="result-value">${graduateInfo.university || '-'}</span>
+                                    <span class="result-value">${graduateInfo.university}</span>
                                 </div>
                                 <div class="result-row">
                                     <span class="result-label">الكلية:</span>
-                                    <span class="result-value">${graduateInfo.faculty || '-'}</span>
+                                    <span class="result-value">${graduateInfo.faculty}</span>
+                                </div>
+                                <div class="result-row">
+                                    <span class="result-label">التخصص:</span>
+                                    <span class="result-value">${graduateInfo.major || '-'}</span>
                                 </div>
                                 <div class="result-row">
                                     <span class="result-label">سنة التخرج:</span>
-                                    <span class="result-value">${graduateInfo.graduationYear || '-'}</span>
+                                    <span class="result-value">${graduateInfo.graduationYear}</span>
                                 </div>
                                 <div class="result-row">
                                     <span class="result-label">رقم التسجيل:</span>
                                     <span class="result-value">${registrationId}</span>
                                 </div>
                                 <div class="result-row">
-                                    <span class="result-label">الحالة:</span>
-                                    <span class="result-value" style="color: #28a745;">تم تسجيل الحضور بنجاح ✓</span>
+                                    <span class="result-label">عدد المرافقين:</span>
+                                    <span class="result-value">${graduateInfo.companions}</span>
+                                </div>
+                                <div class="result-row">
+                                    <span class="result-label">وقت الحضور:</span>
+                                    <span class="result-value">${new Date().toLocaleTimeString('ar-SA')}</span>
                                 </div>
                             `,
                             'success'
                         );
                         
-                        // إرسال تأكيد إلى الصفحة الرئيسية لتحديث البيانات
                         window.parent.postMessage({
                             type: 'QR_SCAN_RESULT',
                             data: { id: registrationId, name: graduateInfo.fullName, success: true }
@@ -508,33 +528,28 @@
                         showToast(`✅ تم تسجيل ${graduateInfo.fullName}`, 2000);
                         
                     } else {
-                        showResult(
-                            'error',
-                            '❌ فشل التسجيل',
-                            result?.message || 'حدث خطأ أثناء تسجيل الحضور'
-                        );
+                        showResult('error', '❌ فشل التسجيل', `<p style="text-align:center;">${result?.message || 'حدث خطأ'}</p>`, 'error');
                     }
                     isProcessing = false;
                 })
                 .withFailureHandler(function(error) {
-                    showResult('error', '❌ خطأ', 'حدث خطأ في الاتصال بالخادم');
+                    showResult('error', '❌ خطأ', '<p style="text-align:center;">حدث خطأ في الاتصال بالخادم</p>', 'error');
                     isProcessing = false;
                 })
                 .markAttendance(registrationId);
         }
-
+        
+        // عرض النتيجة
         function showResult(type, title, content, subType = '') {
-            const panel = document.getElementById('resultPanel');
-            const header = document.getElementById('resultHeader');
+            const card = document.getElementById('resultCard');
             const icon = document.getElementById('resultIcon');
             const titleEl = document.getElementById('resultTitle');
             const contentEl = document.getElementById('resultContent');
             
-            panel.className = 'result-panel ' + type;
+            card.className = 'result-card ' + type;
             contentEl.innerHTML = content;
             titleEl.textContent = title;
             
-            // تغيير الأيقونة حسب النوع
             if (type === 'success') {
                 icon.className = 'fas fa-check-circle';
                 icon.style.color = '#28a745';
@@ -549,16 +564,16 @@
                 icon.style.color = '#17a2b8';
             }
             
-            panel.style.display = 'block';
+            card.style.display = 'block';
             
-            // إخفاء النافذة بعد 5 ثواني
             setTimeout(() => {
-                if (panel.style.display === 'block') {
-                    panel.style.display = 'none';
+                if (card.style.display === 'block') {
+                    card.style.display = 'none';
                 }
             }, 5000);
         }
-
+        
+        // إظهار إشعار سريع
         function showToast(message, duration) {
             const toast = document.getElementById('toast');
             const toastMsg = document.getElementById('toastMessage');
@@ -569,19 +584,37 @@
                 toast.style.display = 'none';
             }, duration);
         }
-
-        function updateCounter() {
+        
+        // تحديث العدادات
+        function updateCounters() {
             document.getElementById('scanCounter').textContent = scanCount;
             document.getElementById('liveCounter').textContent = scanCount;
         }
-
+        
+        // تحديث حالة الكاميرا
+        function updateCameraStatus(message, status) {
+            const statusEl = document.getElementById('cameraStatus');
+            if (status === 'active') {
+                statusEl.innerHTML = '<i class="fas fa-circle"></i> الكاميرا جاهزة';
+                statusEl.style.color = '#28a745';
+            } else if (status === 'warning') {
+                statusEl.innerHTML = '<i class="fas fa-exclamation-triangle"></i> ' + message;
+                statusEl.style.color = '#ffc107';
+            } else {
+                statusEl.innerHTML = '<i class="fas fa-times-circle"></i> ' + message;
+                statusEl.style.color = '#dc3545';
+            }
+        }
+        
+        // إيقاف المسح
         function stopScanning() {
             if (scanInterval) {
                 clearInterval(scanInterval);
                 scanInterval = null;
             }
         }
-
+        
+        // إغلاق الماسح
         function closeScanner() {
             stopScanning();
             
@@ -590,12 +623,10 @@
                 videoStream = null;
             }
             
-            window.parent.postMessage({
-                type: 'CLOSE_SCANNER'
-            }, '*');
+            window.parent.postMessage({ type: 'CLOSE_SCANNER' }, '*');
         }
-
-        // استقبال رسالة من الصفحة الرئيسية
+        
+        // استقبال رسائل من الصفحة الرئيسية
         window.addEventListener('message', function(event) {
             if (event.data.type === 'RESTART_SCANNER') {
                 isProcessing = false;
