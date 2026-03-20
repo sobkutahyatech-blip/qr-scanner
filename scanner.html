@@ -1,4 +1,4 @@
-<!-- scanner.html - استضف هذا الملف في GitHub Pages -->
+<!-- scanner.html - ملف المسح فقط -->
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -108,6 +108,11 @@
             justify-content: center;
         }
         
+        .close-btn:hover {
+            background: white;
+            color: black;
+        }
+        
         .result {
             position: absolute;
             bottom: 120px;
@@ -129,53 +134,6 @@
             border-right-color: #dc3545;
         }
         
-        .manual-input {
-            position: absolute;
-            bottom: 120px;
-            left: 20px;
-            right: 20px;
-            background: white;
-            border-radius: 15px;
-            padding: 20px;
-            display: none;
-        }
-        
-        .manual-input input {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e9ecef;
-            border-radius: 10px;
-            font-size: 1rem;
-            margin-bottom: 10px;
-            font-family: 'Cairo', sans-serif;
-        }
-        
-        .manual-input button {
-            width: 100%;
-            padding: 12px;
-            background: #007a3d;
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 1rem;
-            cursor: pointer;
-        }
-        
-        .switch-mode {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            z-index: 1000;
-            background: rgba(255,255,255,0.2);
-            border: 1px solid white;
-            color: white;
-            padding: 8px 15px;
-            border-radius: 50px;
-            cursor: pointer;
-            pointer-events: auto;
-            font-size: 0.9rem;
-        }
-        
         @media (max-width: 768px) {
             .scan-frame {
                 width: 250px;
@@ -183,14 +141,12 @@
             }
         }
     </style>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
     <div class="scanner-container">
         <video id="preview" playsinline></video>
-        
-        <button class="switch-mode" onclick="toggleManualMode()">
-            <i class="fas fa-keyboard"></i> إدخال يدوي
-        </button>
         
         <div class="overlay">
             <div class="header">
@@ -214,22 +170,12 @@
             <h3 id="resultTitle"></h3>
             <div id="resultContent"></div>
         </div>
-        
-        <!-- إدخال يدوي -->
-        <div id="manualMode" class="manual-input">
-            <h3 style="margin-bottom: 15px; color: #005629;">إدخال يدوي</h3>
-            <input type="text" id="manualRegId" placeholder="أدخل رقم التسجيل">
-            <button onclick="sendManualId()">تسجيل الحضور</button>
-            <button onclick="toggleManualMode()" style="background: #666; margin-top: 10px;">إلغاء</button>
-        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
-    <script src="https://kit.fontawesome.com/your-fontawesome-kit.js"></script>
     <script>
         let videoStream = null;
         let scanInterval = null;
-        let manualMode = false;
 
         // بدء الكاميرا فوراً
         document.addEventListener('DOMContentLoaded', function() {
@@ -237,8 +183,6 @@
         });
 
         function startCamera() {
-            if (manualMode) return;
-            
             navigator.mediaDevices.getUserMedia({ 
                 video: { 
                     facingMode: 'environment',
@@ -256,7 +200,6 @@
             .catch(function(error) {
                 console.error('Camera error:', error);
                 showError('تعذر الوصول إلى الكاميرا');
-                toggleManualMode();
             });
         }
 
@@ -296,13 +239,13 @@
                 // إيقاف المسح مؤقتاً
                 stopScanning();
                 
-                // إرسال النتيجة إلى الصفحة الرئيسية
+                // إرسال النتيجة إلى الصفحة الرئيسية (Admin)
                 window.parent.postMessage({
                     type: 'QR_SCAN_RESULT',
                     data: data
                 }, '*');
                 
-                showSuccess('تم المسح بنجاح', data);
+                showSuccess('تم المسح بنجاح');
                 
             } catch (error) {
                 showError('رمز QR غير صالح');
@@ -321,23 +264,18 @@
             }
         }
 
-        function showSuccess(message, data) {
+        function showSuccess(message) {
             const result = document.getElementById('scanResult');
             const title = document.getElementById('resultTitle');
-            const content = document.getElementById('resultContent');
             
             result.className = 'result success';
             result.style.display = 'block';
-            title.innerHTML = '✅ تم المسح بنجاح';
-            content.innerHTML = `
-                <p><strong>الاسم:</strong> ${data.name || '-'}</p>
-                <p><strong>رقم التسجيل:</strong> ${data.id || '-'}</p>
-            `;
+            title.innerHTML = '✅ ' + message;
             
             setTimeout(() => {
                 result.style.display = 'none';
                 closeScanner();
-            }, 3000);
+            }, 2000);
         }
 
         function showError(message) {
@@ -347,52 +285,25 @@
             result.className = 'result error';
             result.style.display = 'block';
             title.innerHTML = '❌ ' + message;
-            document.getElementById('resultContent').innerHTML = '';
             
             setTimeout(() => {
                 result.style.display = 'none';
+                // إعادة تشغيل الكاميرا
+                if (!videoStream) {
+                    startCamera();
+                }
             }, 2000);
         }
 
         function closeScanner() {
             stopScanning();
-            // إرسال إشارة الإغلاق
+            // إرسال إشارة الإغلاق إلى الصفحة الرئيسية
             window.parent.postMessage({
                 type: 'CLOSE_SCANNER'
             }, '*');
         }
 
-        function toggleManualMode() {
-            const manualDiv = document.getElementById('manualMode');
-            manualMode = !manualMode;
-            
-            if (manualMode) {
-                stopScanning();
-                manualDiv.style.display = 'block';
-            } else {
-                manualDiv.style.display = 'none';
-                startCamera();
-            }
-        }
-
-        function sendManualId() {
-            const regId = document.getElementById('manualRegId').value.trim();
-            
-            if (!regId) {
-                alert('الرجاء إدخال رقم التسجيل');
-                return;
-            }
-            
-            window.parent.postMessage({
-                type: 'MANUAL_ID',
-                regId: regId
-            }, '*');
-            
-            document.getElementById('manualRegId').value = '';
-            toggleManualMode();
-        }
-
-        // استقبال الرسائل من الصفحة الرئيسية
+        // استقبال رسالة إعادة التشغيل من الصفحة الرئيسية
         window.addEventListener('message', function(event) {
             if (event.data.type === 'RESTART_SCANNER') {
                 startCamera();
