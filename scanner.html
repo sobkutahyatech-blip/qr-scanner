@@ -1,13 +1,10 @@
-<!-- Admin.html - الصفحة الرئيسية في Google Apps Script -->
+<!-- scanner.html - استضف هذا الملف في GitHub Pages -->
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>لوحة تحكم الإدارة | مسح QR</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <?!= include('Styles'); ?>
+    <title>مسح QR</title>
     <style>
         * {
             margin: 0;
@@ -16,655 +13,391 @@
         }
         
         body {
-            background: linear-gradient(135deg, #f0f9ff 0%, #e6f0fa 100%);
-            min-height: 100vh;
-            position: relative;
-            padding: 20px;
             font-family: 'Cairo', sans-serif;
-        }
-        
-        .container {
-            max-width: 1300px;
-            margin: 0 auto;
-            position: relative;
-            z-index: 1;
-        }
-        
-        header {
-            background: linear-gradient(135deg, #007a3d, #005629, #004d23);
-            color: white;
-            padding: 20px 15px;
-            text-align: center;
-            box-shadow: 0 20px 40px rgba(0,122,61,0.25);
-            margin-bottom: 20px;
-            border-bottom: 6px solid #c19a3f;
-            border-radius: 25px;
-        }
-        
-        .logo-container {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            margin-bottom: 10px;
-            padding: 5px 20px;
-            background: rgba(255,255,255,0.15);
-            border-radius: 60px;
-            width: fit-content;
-            margin-left: auto;
-            margin-right: auto;
-        }
-        
-        .site-logo {
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            border: 3px solid #c19a3f;
-        }
-        
-        .logo-text h2 {
-            color: #c19a3f;
-            font-size: 0.8rem;
-        }
-        
-        .logo-text h3 {
-            color: white;
-            font-size: 0.7rem;
-        }
-        
-        header h1 {
-            font-size: 1.8rem;
-            margin-bottom: 8px;
-            font-weight: 900;
-            background: linear-gradient(135deg, #ffffff, #f0f0f0);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        
-        .subtitle {
-            font-size: 0.9rem;
-            background: linear-gradient(135deg, #c19a3f, #a57c2e);
-            padding: 6px 20px;
-            border-radius: 50px;
-            display: inline-block;
-            color: white;
-        }
-        
-        /* نافذة المسح المنبثقة */
-        .scanner-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.9);
-            z-index: 10000;
-            display: none;
-        }
-        
-        .scanner-modal.active {
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .scanner-iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
             background: #000;
+            color: white;
         }
         
-        .scanner-header {
+        .scanner-container {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        #preview {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .overlay {
             position: absolute;
             top: 0;
             left: 0;
-            right: 0;
-            background: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent);
-            padding: 20px;
-            z-index: 10001;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
             pointer-events: none;
         }
         
-        .scanner-header h3 {
-            color: white;
+        .header {
+            background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
+            padding: 50px 20px 30px;
             text-align: center;
         }
         
-        /* زر فتح المسح */
-        .open-scanner-btn {
-            background: linear-gradient(135deg, #007a3d, #005629);
+        .header h2 {
             color: white;
-            border: none;
-            padding: 25px;
-            border-radius: 20px;
-            font-size: 1.5rem;
-            font-weight: 700;
-            cursor: pointer;
-            width: 100%;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 15px;
-            box-shadow: 0 10px 25px rgba(0,122,61,0.3);
-        }
-        
-        .open-scanner-btn i {
-            font-size: 2.5rem;
-        }
-        
-        /* نتيجة المسح */
-        .scan-result {
-            margin-top: 15px;
-            padding: 15px;
-            border-radius: 15px;
-            display: none;
-        }
-        
-        .scan-result.success {
-            display: block;
-            background: #d4edda;
-            border-right: 6px solid #28a745;
-            color: #155724;
-        }
-        
-        .scan-result.error {
-            display: block;
-            background: #f8d7da;
-            border-right: 6px solid #dc3545;
-            color: #721c24;
-        }
-        
-        /* باقي الأنماط */
-        .tabs {
-            display: flex;
-            gap: 5px;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-        
-        .tab-btn {
-            background: white;
-            border: none;
-            padding: 8px 12px;
-            border-radius: 50px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: 2px solid transparent;
-            font-family: 'Cairo', sans-serif;
-            font-size: 0.85rem;
-            flex: 1;
-            min-width: 70px;
-        }
-        
-        .tab-btn.active {
-            background: linear-gradient(135deg, #007a3d, #005629);
-            color: white;
-        }
-        
-        .admin-container {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 15px;
-            box-shadow: 0 15px 30px rgba(0,0,0,0.15);
-            margin-bottom: 20px;
-        }
-        
-        .admin-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        
-        .logout-btn {
-            background: #dc3545;
-            color: white;
-            border: none;
-            padding: 6px 15px;
-            border-radius: 50px;
-            cursor: pointer;
-            font-weight: 600;
-        }
-        
-        /* الإحصائيات */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-            margin-bottom: 15px;
-        }
-        
-        .stat-card {
-            background: white;
-            border-radius: 15px;
-            padding: 15px;
-            text-align: center;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-        }
-        
-        .stat-value {
             font-size: 1.8rem;
-            font-weight: 800;
-            color: #007a3d;
+            margin-bottom: 5px;
         }
         
-        /* الجدول */
-        .table-container {
-            overflow-x: auto;
-            background: white;
-            border-radius: 15px;
-            padding: 12px;
+        .header p {
+            color: #c19a3f;
+            font-size: 1rem;
         }
         
-        table {
+        .scan-frame {
+            position: relative;
+            width: 280px;
+            height: 280px;
+            margin: 0 auto;
+            border: 3px solid #c19a3f;
+            border-radius: 30px;
+            box-shadow: 0 0 0 9999px rgba(0,0,0,0.6);
+        }
+        
+        .scan-line {
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
-            border-collapse: collapse;
-            font-size: 0.85rem;
+            height: 3px;
+            background: #c19a3f;
+            animation: scan 2s linear infinite;
         }
         
-        th {
-            background: linear-gradient(135deg, #007a3d, #005629);
-            color: white;
-            padding: 10px;
+        @keyframes scan {
+            0% { top: 0; }
+            50% { top: 100%; }
+            100% { top: 0; }
         }
         
-        td {
-            padding: 8px;
-            border-bottom: 1px solid #e9ecef;
+        .footer {
+            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+            padding: 30px 20px 50px;
             text-align: center;
         }
         
-        .status-badge {
-            padding: 3px 8px;
-            border-radius: 50px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            display: inline-block;
+        .close-btn {
+            background: rgba(255,255,255,0.2);
+            border: 2px solid white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            pointer-events: auto;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         
-        .status-attended {
-            background: #d4edda;
-            color: #155724;
+        .result {
+            position: absolute;
+            bottom: 120px;
+            left: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.9);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            display: none;
+            border-right: 6px solid #28a745;
         }
         
-        .status-not-attended {
-            background: #f8d7da;
-            color: #721c24;
+        .result.success {
+            border-right-color: #28a745;
+        }
+        
+        .result.error {
+            border-right-color: #dc3545;
         }
         
         .manual-input {
-            display: flex;
-            gap: 10px;
-            margin: 15px 0;
+            position: absolute;
+            bottom: 120px;
+            left: 20px;
+            right: 20px;
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            display: none;
         }
         
         .manual-input input {
-            flex: 1;
+            width: 100%;
             padding: 12px;
             border: 2px solid #e9ecef;
-            border-radius: 12px;
+            border-radius: 10px;
+            font-size: 1rem;
+            margin-bottom: 10px;
             font-family: 'Cairo', sans-serif;
         }
         
+        .manual-input button {
+            width: 100%;
+            padding: 12px;
+            background: #007a3d;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+        
+        .switch-mode {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            background: rgba(255,255,255,0.2);
+            border: 1px solid white;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 50px;
+            cursor: pointer;
+            pointer-events: auto;
+            font-size: 0.9rem;
+        }
+        
         @media (max-width: 768px) {
-            .open-scanner-btn {
-                padding: 20px;
-                font-size: 1.2rem;
-            }
-            
-            .open-scanner-btn i {
-                font-size: 2rem;
+            .scan-frame {
+                width: 250px;
+                height: 250px;
             }
         }
     </style>
 </head>
 <body>
-    <div class="graduation-decoration">
-        <div class="floating-cap">🎓</div>
-        <div class="floating-diploma">📜</div>
-    </div>
-
-    <div class="container">
-        <header>
-            <div class="logo-container">
-                <img src="https://h.top4top.io/p_3705bgwm01.jpg" alt="اتحاد الطلبة السوريين" class="site-logo">
-                <div class="logo-text">
-                    <h2>Syrian Students Union - Kutahya</h2>
-                    <h3>لوحة تحكم الإدارة</h3>
-                </div>
+    <div class="scanner-container">
+        <video id="preview" playsinline></video>
+        
+        <button class="switch-mode" onclick="toggleManualMode()">
+            <i class="fas fa-keyboard"></i> إدخال يدوي
+        </button>
+        
+        <div class="overlay">
+            <div class="header">
+                <h2>مسح QR Code</h2>
+                <p>ضع رمز QR داخل الإطار</p>
             </div>
-            <h1>نظام مسح QR والتحقق</h1>
-            <p class="subtitle">🔐 مخصص للإدارة فقط</p>
-        </header>
-
-        <!-- صفحة تسجيل الدخول -->
-        <div id="loginPage" class="login-form">
-            <h2><i class="fas fa-lock"></i> دخول الإدارة</h2>
-            <input type="password" id="adminPassword" class="password-input" placeholder="كلمة المرور" onkeypress="if(event.key==='Enter') verifyPassword()">
-            <button class="btn" onclick="verifyPassword()">
-                <i class="fas fa-sign-in-alt"></i> دخول
-            </button>
-        </div>
-
-        <!-- صفحة الإدارة الرئيسية -->
-        <div id="adminPanel" style="display: none;">
-            <div class="admin-header">
-                <h2><i class="fas fa-tachometer-alt"></i> لوحة التحكم</h2>
-                <button class="logout-btn" onclick="logout()">
-                    <i class="fas fa-sign-out-alt"></i> خروج
-                </button>
-            </div>
-
-            <!-- تبويبات التنقل -->
-            <div class="tabs">
-                <button class="tab-btn active" onclick="showAdminTab('scanner')">
-                    <i class="fas fa-qrcode"></i> مسح QR
-                </button>
-                <button class="tab-btn" onclick="showAdminTab('stats')">
-                    <i class="fas fa-chart-bar"></i> إحصائيات
-                </button>
-                <button class="tab-btn" onclick="showAdminTab('graduates')">
-                    <i class="fas fa-users"></i> القائمة
-                </button>
-                <button class="tab-btn" onclick="showAdminTab('search')">
-                    <i class="fas fa-search"></i> بحث
-                </button>
-            </div>
-
-            <!-- تبويب المسح -->
-            <div id="scannerTab" class="admin-container">
-                <!-- زر فتح الكاميرا -->
-                <button class="open-scanner-btn" onclick="openCameraScanner()">
-                    <i class="fas fa-camera"></i>
-                    <span>فتح الكاميرا لمسح QR</span>
-                    <i class="fas fa-qrcode"></i>
-                </button>
-                
-                <!-- خيار إدخال يدوي احتياطي -->
-                <div style="margin-top: 20px;">
-                    <h3 style="color: #005629; margin-bottom: 10px;">إدخال يدوي (احتياطي)</h3>
-                    <div class="manual-input">
-                        <input type="text" id="manualRegId" placeholder="أدخل رقم التسجيل">
-                        <button class="btn" onclick="verifyManualId()" style="width: auto; padding: 12px 20px;">
-                            <i class="fas fa-check"></i> تحقق
-                        </button>
-                    </div>
-                </div>
-                
-                <!-- نتيجة المسح -->
-                <div id="scanResult" class="scan-result">
-                    <h3 style="margin-bottom: 8px; font-size: 1.1rem;" id="scanResultTitle"></h3>
-                    <div id="scanResultContent"></div>
-                </div>
-            </div>
-
-            <!-- باقي التبويبات (stats, graduates, search) -->
-            <div id="statsTab" class="admin-container" style="display: none;">
-                <h3>إحصائيات التسجيل</h3>
-                <div class="stats-grid" id="statsGrid"></div>
-            </div>
-
-            <div id="graduatesTab" class="admin-container" style="display: none;">
-                <h3>قائمة الخريجين</h3>
-                <button class="btn" onclick="exportData()" style="margin-bottom: 10px;">تصدير Excel</button>
-                <div class="table-container" id="graduatesTable"></div>
-            </div>
-
-            <div id="searchTab" class="admin-container" style="display: none;">
-                <h3>بحث</h3>
-                <div class="search-box">
-                    <input type="text" id="searchInput" placeholder="ابحث بالاسم أو رقم التسجيل">
-                    <button class="btn" onclick="searchGraduates()">بحث</button>
-                </div>
-                <div class="table-container" id="searchResults"></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- نافذة المسح المنبثقة -->
-    <div id="scannerModal" class="scanner-modal">
-        <div class="scanner-header">
-            <h3>مسح QR Code</h3>
-        </div>
-        <iframe 
-            id="scannerIframe" 
-            class="scanner-iframe" 
-            src="https://your-username.github.io/scanner.html" 
-            allow="camera *;"
-        ></iframe>
-    </div>
-
-    <script>
-        let allGraduates = [];
-
-        document.addEventListener('DOMContentLoaded', function() {
-            const savedSession = sessionStorage.getItem('adminLoggedIn');
-            if (savedSession === 'true') {
-                document.getElementById('loginPage').style.display = 'none';
-                document.getElementById('adminPanel').style.display = 'block';
-                loadAdminData();
-            }
             
-            // استقبال نتائج المسح من iframe
-            window.addEventListener('message', function(event) {
-                if (event.data.type === 'QR_SCAN_RESULT') {
-                    // تم مسح QR بنجاح
-                    handleQRData(event.data.data);
-                } else if (event.data.type === 'MANUAL_ID') {
-                    // إدخال يدوي
-                    verifyManualId(event.data.regId);
-                } else if (event.data.type === 'CLOSE_SCANNER') {
-                    closeCameraScanner();
-                }
-            });
+            <div class="scan-frame">
+                <div class="scan-line"></div>
+            </div>
+            
+            <div class="footer">
+                <button class="close-btn" onclick="closeScanner()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- نتيجة المسح -->
+        <div id="scanResult" class="result">
+            <h3 id="resultTitle"></h3>
+            <div id="resultContent"></div>
+        </div>
+        
+        <!-- إدخال يدوي -->
+        <div id="manualMode" class="manual-input">
+            <h3 style="margin-bottom: 15px; color: #005629;">إدخال يدوي</h3>
+            <input type="text" id="manualRegId" placeholder="أدخل رقم التسجيل">
+            <button onclick="sendManualId()">تسجيل الحضور</button>
+            <button onclick="toggleManualMode()" style="background: #666; margin-top: 10px;">إلغاء</button>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+    <script src="https://kit.fontawesome.com/your-fontawesome-kit.js"></script>
+    <script>
+        let videoStream = null;
+        let scanInterval = null;
+        let manualMode = false;
+
+        // بدء الكاميرا فوراً
+        document.addEventListener('DOMContentLoaded', function() {
+            startCamera();
         });
 
-        function verifyPassword() {
-            const password = document.getElementById('adminPassword').value;
+        function startCamera() {
+            if (manualMode) return;
             
-            if (!password) {
-                Swal.fire('تنبيه', 'الرجاء إدخال كلمة المرور', 'warning');
-                return;
+            navigator.mediaDevices.getUserMedia({ 
+                video: { 
+                    facingMode: 'environment',
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 }
+                } 
+            })
+            .then(function(stream) {
+                videoStream = stream;
+                const video = document.getElementById('preview');
+                video.srcObject = stream;
+                video.play();
+                startScanning();
+            })
+            .catch(function(error) {
+                console.error('Camera error:', error);
+                showError('تعذر الوصول إلى الكاميرا');
+                toggleManualMode();
+            });
+        }
+
+        function startScanning() {
+            const video = document.getElementById('preview');
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            
+            scanInterval = setInterval(() => {
+                if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    
+                    const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+                    const code = jsQR(imageData.data, canvas.width, canvas.height, {
+                        inversionAttempts: "dontInvert"
+                    });
+                    
+                    if (code) {
+                        // تم العثور على QR code
+                        handleScanResult(code.data);
+                    }
+                }
+            }, 500);
+        }
+
+        function handleScanResult(content) {
+            try {
+                const data = JSON.parse(content);
+                
+                if (!data || !data.id) {
+                    showError('رمز QR غير صالح');
+                    return;
+                }
+
+                // إيقاف المسح مؤقتاً
+                stopScanning();
+                
+                // إرسال النتيجة إلى الصفحة الرئيسية
+                window.parent.postMessage({
+                    type: 'QR_SCAN_RESULT',
+                    data: data
+                }, '*');
+                
+                showSuccess('تم المسح بنجاح', data);
+                
+            } catch (error) {
+                showError('رمز QR غير صالح');
             }
-
-            google.script.run
-                .withSuccessHandler(function(isValid) {
-                    if (isValid) {
-                        sessionStorage.setItem('adminLoggedIn', 'true');
-                        document.getElementById('loginPage').style.display = 'none';
-                        document.getElementById('adminPanel').style.display = 'block';
-                        loadAdminData();
-                    } else {
-                        Swal.fire('خطأ', 'كلمة المرور غير صحيحة', 'error');
-                    }
-                })
-                .verifyAdminPassword(password);
         }
 
-        function logout() {
-            sessionStorage.removeItem('adminLoggedIn');
-            document.getElementById('loginPage').style.display = 'block';
-            document.getElementById('adminPanel').style.display = 'none';
+        function stopScanning() {
+            if (scanInterval) {
+                clearInterval(scanInterval);
+                scanInterval = null;
+            }
+            
+            if (videoStream) {
+                videoStream.getTracks().forEach(track => track.stop());
+                videoStream = null;
+            }
         }
 
-        function openCameraScanner() {
-            document.getElementById('scannerModal').classList.add('active');
+        function showSuccess(message, data) {
+            const result = document.getElementById('scanResult');
+            const title = document.getElementById('resultTitle');
+            const content = document.getElementById('resultContent');
+            
+            result.className = 'result success';
+            result.style.display = 'block';
+            title.innerHTML = '✅ تم المسح بنجاح';
+            content.innerHTML = `
+                <p><strong>الاسم:</strong> ${data.name || '-'}</p>
+                <p><strong>رقم التسجيل:</strong> ${data.id || '-'}</p>
+            `;
+            
+            setTimeout(() => {
+                result.style.display = 'none';
+                closeScanner();
+            }, 3000);
         }
 
-        function closeCameraScanner() {
-            document.getElementById('scannerModal').classList.remove('active');
-            // إعادة تشغيل المسح إذا لزم الأمر
-            const iframe = document.getElementById('scannerIframe');
-            iframe.contentWindow.postMessage({ type: 'RESTART_SCANNER' }, '*');
+        function showError(message) {
+            const result = document.getElementById('scanResult');
+            const title = document.getElementById('resultTitle');
+            
+            result.className = 'result error';
+            result.style.display = 'block';
+            title.innerHTML = '❌ ' + message;
+            document.getElementById('resultContent').innerHTML = '';
+            
+            setTimeout(() => {
+                result.style.display = 'none';
+            }, 2000);
         }
 
-        function handleQRData(data) {
-            // إرسال للتحقق
-            google.script.run
-                .withSuccessHandler(function(result) {
-                    if (result && result.success) {
-                        showScanResult('success', result.graduate);
-                        loadAdminData();
-                        closeCameraScanner();
-                    } else {
-                        showScanResult('error', null, result?.message);
-                    }
-                })
-                .markAttendance(data.id);
+        function closeScanner() {
+            stopScanning();
+            // إرسال إشارة الإغلاق
+            window.parent.postMessage({
+                type: 'CLOSE_SCANNER'
+            }, '*');
         }
 
-        function verifyManualId(id) {
-            const regId = id || document.getElementById('manualRegId').value.trim();
+        function toggleManualMode() {
+            const manualDiv = document.getElementById('manualMode');
+            manualMode = !manualMode;
+            
+            if (manualMode) {
+                stopScanning();
+                manualDiv.style.display = 'block';
+            } else {
+                manualDiv.style.display = 'none';
+                startCamera();
+            }
+        }
+
+        function sendManualId() {
+            const regId = document.getElementById('manualRegId').value.trim();
             
             if (!regId) {
-                Swal.fire('تنبيه', 'الرجاء إدخال رقم التسجيل', 'warning');
+                alert('الرجاء إدخال رقم التسجيل');
                 return;
             }
-
-            google.script.run
-                .withSuccessHandler(function(result) {
-                    if (result && result.success) {
-                        showScanResult('success', result.graduate);
-                        document.getElementById('manualRegId').value = '';
-                    } else {
-                        showScanResult('error', null, result?.message);
-                    }
-                })
-                .markAttendance(regId);
+            
+            window.parent.postMessage({
+                type: 'MANUAL_ID',
+                regId: regId
+            }, '*');
+            
+            document.getElementById('manualRegId').value = '';
+            toggleManualMode();
         }
 
-        function showScanResult(type, graduate, message = '') {
-            const resultDiv = document.getElementById('scanResult');
-            const title = document.getElementById('scanResultTitle');
-            const content = document.getElementById('scanResultContent');
-            
-            resultDiv.className = 'scan-result ' + type;
-            
-            if (type === 'success' && graduate) {
-                title.innerHTML = '✅ تم تسجيل الحضور';
-                content.innerHTML = `
-                    <p><strong>الاسم:</strong> ${graduate.fullName}</p>
-                    <p><strong>رقم التسجيل:</strong> ${graduate.registrationId}</p>
-                `;
-            } else {
-                title.innerHTML = '❌ ' + (message || 'خطأ');
-                content.innerHTML = '';
+        // استقبال الرسائل من الصفحة الرئيسية
+        window.addEventListener('message', function(event) {
+            if (event.data.type === 'RESTART_SCANNER') {
+                startCamera();
             }
-            
-            resultDiv.style.display = 'block';
-            setTimeout(() => resultDiv.style.display = 'none', 3000);
-        }
-
-        function loadAdminData() {
-            google.script.run
-                .withSuccessHandler(function(graduates) {
-                    allGraduates = graduates;
-                    displayGraduates(graduates);
-                    
-                    google.script.run
-                        .withSuccessHandler(displayStatistics)
-                        .getStatistics();
-                })
-                .getAllGraduates();
-        }
-
-        function showAdminTab(tab) {
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            document.querySelectorAll('#scannerTab, #statsTab, #graduatesTab, #searchTab').forEach(t => t.style.display = 'none');
-            
-            if (tab === 'scanner') {
-                document.getElementById('scannerTab').style.display = 'block';
-                document.querySelectorAll('.tab-btn')[0].classList.add('active');
-            } else if (tab === 'stats') {
-                document.getElementById('statsTab').style.display = 'block';
-                document.querySelectorAll('.tab-btn')[1].classList.add('active');
-            } else if (tab === 'graduates') {
-                document.getElementById('graduatesTab').style.display = 'block';
-                document.querySelectorAll('.tab-btn')[2].classList.add('active');
-            } else if (tab === 'search') {
-                document.getElementById('searchTab').style.display = 'block';
-                document.querySelectorAll('.tab-btn')[3].classList.add('active');
-            }
-        }
-
-        function displayStatistics(stats) {
-            document.getElementById('statsGrid').innerHTML = `
-                <div class="stat-card">
-                    <div class="stat-value">${stats.total}</div>
-                    <div class="stat-label">إجمالي المسجلين</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" style="color: #28a745;">${stats.attended}</div>
-                    <div class="stat-label">الحضور</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" style="color: #dc3545;">${stats.notAttended}</div>
-                    <div class="stat-label">لم يحضروا</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value">${stats.attendanceRate}%</div>
-                    <div class="stat-label">نسبة الحضور</div>
-                </div>
-            `;
-        }
-
-        function displayGraduates(graduates) {
-            let html = '<table><tr><th>رقم التسجيل</th><th>الاسم</th><th>الجامعة</th><th>الحالة</th></tr>';
-            graduates.slice(0, 5).forEach(g => {
-                html += `
-                    <tr>
-                        <td>${g.registrationId}</td>
-                        <td>${g.fullName}</td>
-                        <td>${g.university}</td>
-                        <td><span class="status-badge ${g.attendanceStatus === 'حضر' ? 'status-attended' : 'status-not-attended'}">${g.attendanceStatus || 'لم يحضر'}</span></td>
-                    </tr>
-                `;
-            });
-            html += '</table>';
-            document.getElementById('graduatesTable').innerHTML = html;
-        }
-
-        function searchGraduates() {
-            const term = document.getElementById('searchInput').value.toLowerCase();
-            const results = allGraduates.filter(g => 
-                g.fullName?.toLowerCase().includes(term) || 
-                g.registrationId?.toLowerCase().includes(term)
-            );
-            
-            let html = '<table><tr><th>رقم التسجيل</th><th>الاسم</th><th>الجامعة</th><th>الحالة</th></tr>';
-            results.slice(0, 5).forEach(g => {
-                html += `
-                    <tr>
-                        <td>${g.registrationId}</td>
-                        <td>${g.fullName}</td>
-                        <td>${g.university}</td>
-                        <td><span class="status-badge ${g.attendanceStatus === 'حضر' ? 'status-attended' : 'status-not-attended'}">${g.attendanceStatus || 'لم يحضر'}</span></td>
-                    </tr>
-                `;
-            });
-            html += '</table>';
-            document.getElementById('searchResults').innerHTML = html;
-        }
-
-        function exportData() {
-            google.script.run
-                .withSuccessHandler(function(csv) {
-                    if (csv) {
-                        const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
-                        const link = document.createElement('a');
-                        link.href = URL.createObjectURL(blob);
-                        link.download = 'graduation_data.csv';
-                        link.click();
-                    }
-                })
-                .exportToCSV();
-        }
+        });
     </script>
 </body>
 </html>
