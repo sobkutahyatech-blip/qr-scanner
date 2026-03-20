@@ -1,10 +1,10 @@
-<!-- scanner.html - ملف المسح فقط -->
+<!-- scanner.html - مستمر في التصوير -->
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>مسح QR</title>
+    <title>مسح QR مستمر</title>
     <style>
         * {
             margin: 0;
@@ -60,6 +60,16 @@
             font-size: 1rem;
         }
         
+        .counter {
+            background: #c19a3f;
+            color: #005629;
+            padding: 5px 15px;
+            border-radius: 50px;
+            font-weight: bold;
+            display: inline-block;
+            margin-top: 10px;
+        }
+        
         .scan-frame {
             position: relative;
             width: 280px;
@@ -106,6 +116,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            transition: all 0.3s ease;
         }
         
         .close-btn:hover {
@@ -113,31 +124,63 @@
             color: black;
         }
         
-        .result {
+        .notification {
             position: absolute;
-            bottom: 120px;
+            top: 20px;
             left: 20px;
             right: 20px;
             background: rgba(0,0,0,0.9);
             border-radius: 15px;
-            padding: 20px;
+            padding: 15px;
             text-align: center;
             display: none;
+            z-index: 2000;
             border-right: 6px solid #28a745;
+            animation: slideDown 0.3s ease;
         }
         
-        .result.success {
+        @keyframes slideDown {
+            from { transform: translateY(-100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        .notification.success {
             border-right-color: #28a745;
         }
         
-        .result.error {
+        .notification.error {
             border-right-color: #dc3545;
+        }
+        
+        .notification.warning {
+            border-right-color: #ffc107;
+        }
+        
+        .status-badge {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            border: 1px solid #c19a3f;
+        }
+        
+        .status-badge i {
+            color: #28a745;
+            margin-left: 5px;
         }
         
         @media (max-width: 768px) {
             .scan-frame {
                 width: 250px;
                 height: 250px;
+            }
+            
+            .header h2 {
+                font-size: 1.5rem;
             }
         }
     </style>
@@ -148,10 +191,23 @@
     <div class="scanner-container">
         <video id="preview" playsinline></video>
         
+        <!-- إشعارات المسح -->
+        <div id="notification" class="notification">
+            <h3 id="notificationTitle" style="margin-bottom: 5px;"></h3>
+            <p id="notificationMessage"></p>
+        </div>
+        
+        <!-- عداد المسح -->
+        <div class="status-badge">
+            <i class="fas fa-check-circle"></i>
+            <span id="scanCounter">0</span> شخص تم مسحهم
+        </div>
+        
         <div class="overlay">
             <div class="header">
                 <h2>مسح QR Code</h2>
-                <p>ضع رمز QR داخل الإطار</p>
+                <p>ضع رمز QR داخل الإطار للمسح التلقائي</p>
+                <div class="counter" id="liveCounter">0</div>
             </div>
             
             <div class="scan-frame">
@@ -164,18 +220,15 @@
                 </button>
             </div>
         </div>
-        
-        <!-- نتيجة المسح -->
-        <div id="scanResult" class="result">
-            <h3 id="resultTitle"></h3>
-            <div id="resultContent"></div>
-        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
     <script>
         let videoStream = null;
         let scanInterval = null;
+        let scanCount = 0;
+        let lastScanTime = 0;
+        let isScanning = true;
 
         // بدء الكاميرا فوراً
         document.addEventListener('DOMContentLoaded', function() {
@@ -196,10 +249,11 @@
                 video.srcObject = stream;
                 video.play();
                 startScanning();
+                showNotification('✅ الكاميرا جاهزة', 'يمكنك البدء بمسح QR', 'success', 2000);
             })
             .catch(function(error) {
                 console.error('Camera error:', error);
-                showError('تعذر الوصول إلى الكاميرا');
+                showNotification('❌ خطأ في الكاميرا', 'تأكد من إذن الوصول للكاميرا', 'error', 3000);
             });
         }
 
@@ -209,7 +263,7 @@
             const context = canvas.getContext('2d');
             
             scanInterval = setInterval(() => {
-                if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                if (video.readyState === video.HAVE_ENOUGH_DATA && isScanning) {
                     canvas.width = video.videoWidth;
                     canvas.height = video.videoHeight;
                     context.drawImage(video, 0, 0, canvas.width, canvas.height);
@@ -220,11 +274,15 @@
                     });
                     
                     if (code) {
-                        // تم العثور على QR code
-                        handleScanResult(code.data);
+                        // منع المسح المتكرر لنفس QR (ثانية واحدة بين كل مسح)
+                        const now = Date.now();
+                        if (now - lastScanTime > 1000) {
+                            lastScanTime = now;
+                            handleScanResult(code.data);
+                        }
                     }
                 }
-            }, 500);
+            }, 300); // مسح كل 300 مللي ثانية (أسرع)
         }
 
         function handleScanResult(content) {
@@ -232,24 +290,59 @@
                 const data = JSON.parse(content);
                 
                 if (!data || !data.id) {
-                    showError('رمز QR غير صالح');
+                    showNotification('❌ خطأ', 'رمز QR غير صالح', 'error', 2000);
                     return;
                 }
 
-                // إيقاف المسح مؤقتاً
-                stopScanning();
+                // إيقاف المسح مؤقتاً أثناء المعالجة
+                isScanning = false;
                 
-                // إرسال النتيجة إلى الصفحة الرئيسية (Admin)
+                // إظهار رسالة جاري المعالجة
+                showNotification('⏳ جاري التحقق', 'الرجاء الانتظار...', 'warning', 1000);
+                
+                // إرسال النتيجة إلى الصفحة الرئيسية
                 window.parent.postMessage({
                     type: 'QR_SCAN_RESULT',
                     data: data
                 }, '*');
                 
-                showSuccess('تم المسح بنجاح');
+                // زيادة العداد
+                scanCount++;
+                updateCounter();
+                
+                // إظهار رسالة نجاح
+                showNotification('✅ تم المسح بنجاح', `الخريج: ${data.name || 'تم التعرف عليه'}`, 'success', 1500);
+                
+                // إعادة تشغيل المسح بعد 1.5 ثانية
+                setTimeout(() => {
+                    isScanning = true;
+                }, 1500);
                 
             } catch (error) {
-                showError('رمز QR غير صالح');
+                showNotification('❌ خطأ', 'رمز QR غير صالح', 'error', 2000);
+                // إعادة تشغيل المسح مباشرة
+                isScanning = true;
             }
+        }
+
+        function showNotification(title, message, type, duration) {
+            const notification = document.getElementById('notification');
+            const titleEl = document.getElementById('notificationTitle');
+            const messageEl = document.getElementById('notificationMessage');
+            
+            notification.className = 'notification ' + type;
+            titleEl.textContent = title;
+            messageEl.textContent = message;
+            notification.style.display = 'block';
+            
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, duration);
+        }
+
+        function updateCounter() {
+            document.getElementById('scanCounter').textContent = scanCount;
+            document.getElementById('liveCounter').textContent = scanCount;
         }
 
         function stopScanning() {
@@ -257,56 +350,33 @@
                 clearInterval(scanInterval);
                 scanInterval = null;
             }
+        }
+
+        function closeScanner() {
+            stopScanning();
             
             if (videoStream) {
                 videoStream.getTracks().forEach(track => track.stop());
                 videoStream = null;
             }
-        }
-
-        function showSuccess(message) {
-            const result = document.getElementById('scanResult');
-            const title = document.getElementById('resultTitle');
             
-            result.className = 'result success';
-            result.style.display = 'block';
-            title.innerHTML = '✅ ' + message;
-            
-            setTimeout(() => {
-                result.style.display = 'none';
-                closeScanner();
-            }, 2000);
-        }
-
-        function showError(message) {
-            const result = document.getElementById('scanResult');
-            const title = document.getElementById('resultTitle');
-            
-            result.className = 'result error';
-            result.style.display = 'block';
-            title.innerHTML = '❌ ' + message;
-            
-            setTimeout(() => {
-                result.style.display = 'none';
-                // إعادة تشغيل الكاميرا
-                if (!videoStream) {
-                    startCamera();
-                }
-            }, 2000);
-        }
-
-        function closeScanner() {
-            stopScanning();
-            // إرسال إشارة الإغلاق إلى الصفحة الرئيسية
+            // إرسال إشارة الإغلاق
             window.parent.postMessage({
                 type: 'CLOSE_SCANNER'
             }, '*');
         }
 
-        // استقبال رسالة إعادة التشغيل من الصفحة الرئيسية
+        // استقبال رسالة من الصفحة الرئيسية
         window.addEventListener('message', function(event) {
-            if (event.data.type === 'RESTART_SCANNER') {
-                startCamera();
+            if (event.data.type === 'SCAN_RESULT_CONFIRMED') {
+                // تأكيد من الصفحة الرئيسية أن التسجيل تم
+                showNotification('✅ تم التسجيل', 'تم حفظ البيانات بنجاح', 'success', 1500);
+            } else if (event.data.type === 'SCAN_RESULT_ERROR') {
+                // خطأ في التسجيل
+                showNotification('❌ خطأ', event.data.message || 'فشل التسجيل', 'error', 2000);
+                isScanning = true;
+            } else if (event.data.type === 'RESTART_SCANNER') {
+                isScanning = true;
             }
         });
     </script>
