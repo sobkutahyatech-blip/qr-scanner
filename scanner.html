@@ -1,637 +1,547 @@
-<!-- scanner.html - قارئ QR المتكامل -->
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>قارئ QR - نظام حضور التخرج</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>مسح QR | حفل التخرج</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            font-family: 'Cairo', 'Segoe UI', sans-serif;
         }
-        
+
         body {
-            font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #000;
-            color: white;
-            overflow: hidden;
+            background: linear-gradient(135deg, #0f2027, #203a43);
+            min-height: 100vh;
+            padding: 15px;
         }
-        
-        .scanner-container {
-            position: relative;
-            width: 100%;
-            height: 100vh;
-            overflow: hidden;
+
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
         }
-        
-        #preview {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        
-        .overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            pointer-events: none;
-        }
-        
+
         .header {
-            background: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent);
-            padding: 40px 20px 30px;
             text-align: center;
+            margin-bottom: 25px;
         }
-        
-        .header h2 {
+
+        .header h1 {
             color: white;
             font-size: 1.6rem;
-            margin-bottom: 5px;
-        }
-        
-        .header p {
-            color: #c19a3f;
-            font-size: 0.9rem;
-        }
-        
-        .counter-badge {
-            background: #c19a3f;
-            color: #005629;
-            padding: 5px 15px;
-            border-radius: 50px;
-            font-weight: bold;
-            display: inline-block;
-            margin-top: 10px;
-            font-size: 0.9rem;
-        }
-        
-        .scan-frame {
-            position: relative;
-            width: 280px;
-            height: 280px;
-            margin: 0 auto;
-            border: 3px solid #c19a3f;
-            border-radius: 30px;
-            box-shadow: 0 0 0 9999px rgba(0,0,0,0.7);
-        }
-        
-        .scan-line {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 3px;
-            background: #c19a3f;
-            animation: scan 2s linear infinite;
-            box-shadow: 0 0 10px #c19a3f;
-        }
-        
-        @keyframes scan {
-            0% { top: 0; }
-            50% { top: 100%; }
-            100% { top: 0; }
-        }
-        
-        .footer {
-            background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
-            padding: 30px 20px 40px;
-            text-align: center;
-        }
-        
-        .close-btn {
-            background: rgba(255,255,255,0.2);
-            border: 2px solid white;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            color: white;
-            font-size: 1.5rem;
-            cursor: pointer;
-            pointer-events: auto;
-            margin: 0 auto;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.3s ease;
+            gap: 10px;
         }
-        
-        .close-btn:hover {
-            background: white;
-            color: black;
+
+        .header h1 i {
+            color: #f9ca24;
         }
-        
-        /* نافذة النتائج */
-        .result-card {
-            position: absolute;
-            bottom: 100px;
-            left: 15px;
-            right: 15px;
-            background: rgba(0,0,0,0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 25px;
+
+        .header p {
+            color: rgba(255,255,255,0.8);
+            font-size: 0.8rem;
+        }
+
+        .scanner-card {
+            background: rgba(255,255,255,0.95);
+            border-radius: 30px;
             padding: 20px;
-            border-right: 6px solid;
-            display: none;
-            animation: slideUp 0.3s ease;
-            z-index: 1000;
-            pointer-events: none;
+            margin-bottom: 20px;
         }
-        
-        @keyframes slideUp {
-            from { transform: translateY(100%); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-        
-        .result-card.success { border-right-color: #28a745; }
-        .result-card.error { border-right-color: #dc3545; }
-        .result-card.warning { border-right-color: #ffc107; }
-        .result-card.info { border-right-color: #17a2b8; }
-        
-        .result-header {
+
+        .scanner-title {
+            font-size: 1.2rem;
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 15px;
             display: flex;
             align-items: center;
-            gap: 12px;
-            margin-bottom: 15px;
-            font-size: 1.2rem;
-            font-weight: bold;
-            padding-bottom: 10px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+            justify-content: center;
+            gap: 8px;
         }
-        
-        .result-header i { font-size: 1.8rem; }
-        
-        .result-content { padding-right: 5px; }
-        
-        .result-row {
+
+        .camera-preview {
+            background: #000;
+            border-radius: 20px;
+            overflow: hidden;
+            position: relative;
+            min-height: 400px;
             display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
+            align-items: center;
+            justify-content: center;
         }
-        
-        .result-label {
-            color: #aaa;
-            font-weight: 500;
-            font-size: 0.9rem;
+
+        #qr-reader {
+            width: 100%;
+            min-height: 400px;
+            background: #000;
         }
-        
-        .result-value {
-            color: white;
-            font-weight: 600;
-            font-size: 0.9rem;
-            text-align: left;
+
+        #qr-reader video {
+            width: 100%;
+            height: auto;
+            object-fit: cover;
         }
-        
-        /* عداد المسح */
-        .scan-stats {
-            position: absolute;
-            bottom: 20px;
-            right: 15px;
-            background: rgba(0,0,0,0.7);
-            backdrop-filter: blur(5px);
-            padding: 8px 15px;
-            border-radius: 50px;
-            font-size: 0.85rem;
-            border: 1px solid #c19a3f;
-            pointer-events: none;
-            z-index: 100;
-        }
-        
-        .scan-stats i { color: #28a745; margin-left: 5px; }
-        
-        /* إشعار سريع */
-        .toast {
-            position: absolute;
-            top: 100px;
-            left: 15px;
-            right: 15px;
-            background: rgba(0,0,0,0.9);
-            border-radius: 50px;
-            padding: 12px 20px;
+
+        .scan-result {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 20px;
+            margin-top: 15px;
             text-align: center;
+            border-right: 4px solid #f9ca24;
+            transition: all 0.3s;
             display: none;
-            z-index: 2000;
-            animation: fadeInOut 0.3s ease;
-            pointer-events: none;
-            font-size: 0.9rem;
         }
-        
-        @keyframes fadeInOut {
-            0% { opacity: 0; transform: translateY(-20px); }
-            15% { opacity: 1; transform: translateY(0); }
-            85% { opacity: 1; transform: translateY(0); }
-            100% { opacity: 0; transform: translateY(-20px); }
+
+        .scan-result.success {
+            background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+            border-right-color: #10b981;
+            display: block;
         }
-        
-        /* حالة الكاميرا */
-        .camera-status {
-            position: absolute;
-            top: 20px;
-            left: 15px;
-            background: rgba(0,0,0,0.6);
-            padding: 6px 12px;
-            border-radius: 50px;
-            font-size: 0.75rem;
-            pointer-events: none;
-            z-index: 100;
+
+        .scan-result.error {
+            background: linear-gradient(135deg, #fee2e2, #fecaca);
+            border-right-color: #ef4444;
+            display: block;
         }
-        
-        .camera-status i { margin-left: 5px; }
-        .camera-status.active i { color: #28a745; }
-        
-        @media (max-width: 768px) {
-            .scan-frame { width: 250px; height: 250px; }
-            .header h2 { font-size: 1.3rem; }
-            .result-card { bottom: 80px; padding: 15px; }
-            .result-header { font-size: 1rem; }
-            .result-row { padding: 6px 0; }
+
+        .scan-result.info {
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            border-right-color: #f59e0b;
+            display: block;
+        }
+
+        .guest-info {
+            margin-top: 10px;
+            padding: 10px;
+            background: white;
+            border-radius: 15px;
+        }
+
+        .guest-info p {
+            margin: 8px 0;
+            color: #2c3e50;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .btn {
+            flex: 1;
+            background: linear-gradient(135deg, #f9ca24, #f39c12);
+            border: none;
+            padding: 12px;
+            border-radius: 40px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            transform: scale(1.02);
+        }
+
+        .btn.stop {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+        }
+
+        .status-bar {
+            background: rgba(0,0,0,0.7);
+            border-radius: 30px;
+            padding: 10px 15px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+            color: white;
+        }
+
+        .status-text {
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .status-dot.active {
+            background: #10b981;
+            animation: pulse 1.5s infinite;
+        }
+
+        .status-dot.inactive {
+            background: #6b7280;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.8); }
+        }
+
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+            color: rgba(255,255,255,0.7);
+            text-decoration: none;
+            background: rgba(255,255,255,0.1);
+            padding: 10px;
+            border-radius: 40px;
+        }
+
+        .permission-warning {
+            background: #fef3c7;
+            border-right: 4px solid #f59e0b;
+            padding: 12px;
+            border-radius: 16px;
+            margin-bottom: 15px;
+            font-size: 0.8rem;
+            display: none;
+        }
+
+        @media (max-width: 600px) {
+            .camera-preview {
+                min-height: 350px;
+            }
+            #qr-reader {
+                min-height: 350px;
+            }
         }
     </style>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <div class="scanner-container">
-        <video id="preview" playsinline autoplay></video>
-        
-        <!-- حالة الكاميرا -->
-        <div class="camera-status" id="cameraStatus">
-            <i class="fas fa-circle"></i> جاري التشغيل...
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-qrcode"></i> مسح QR للدخول</h1>
+            <p>ضع رمز QR الخاص بالضيف أمام الكاميرا لتسجيل الدخول</p>
         </div>
-        
-        <!-- نافذة النتائج -->
-        <div id="resultCard" class="result-card">
-            <div class="result-header">
-                <i id="resultIcon" class="fas fa-check-circle"></i>
-                <span id="resultTitle">تم المسح</span>
-            </div>
-            <div class="result-content" id="resultContent"></div>
-        </div>
-        
-        <!-- إشعار سريع -->
-        <div id="toast" class="toast">
-            <span id="toastMessage"></span>
-        </div>
-        
-        <!-- عداد المسح -->
-        <div class="scan-stats">
-            <i class="fas fa-users"></i>
-            <span id="scanCounter">0</span> تم تسجيلهم
-        </div>
-        
-        <div class="overlay">
-            <div class="header">
-                <h2><i class="fas fa-graduation-cap"></i> نظام حضور التخرج</h2>
-                <p>ضع رمز QR داخل الإطار للمسح التلقائي</p>
-                <div class="counter-badge" id="liveCounter">0</div>
+
+        <div class="scanner-card">
+            <div class="status-bar">
+                <div class="status-text">
+                    <span class="status-dot" id="statusDot"></span>
+                    <span id="scannerStatusText">غير نشط</span>
+                </div>
+                <div class="status-text">
+                    <i class="fas fa-camera"></i>
+                    <span id="cameraStatus">في انتظار التشغيل</span>
+                </div>
             </div>
             
-            <div class="scan-frame">
-                <div class="scan-line"></div>
+            <div class="permission-warning" id="permissionWarning">
+                <i class="fas fa-exclamation-triangle"></i>
+                <strong>مطلوب إذن الكاميرا</strong><br>
+                يرجى السماح بالوصول إلى الكاميرا لاستخدام ماسح QR
             </div>
             
-            <div class="footer">
-                <button class="close-btn" onclick="closeScanner()">
-                    <i class="fas fa-times"></i>
-                </button>
+            <div class="scanner-title">
+                <i class="fas fa-camera"></i> كاميرا المسح
+            </div>
+            <div id="qr-reader" class="camera-preview"></div>
+            
+            <div id="scanResult" class="scan-result"></div>
+            
+            <div class="btn-group">
+                <button id="startScanBtn" class="btn"><i class="fas fa-play"></i> تشغيل الماسح</button>
+                <button id="stopScanBtn" class="btn stop" style="display: none;"><i class="fas fa-stop"></i> إيقاف الماسح</button>
             </div>
         </div>
+        
+        <a href="index.html" class="back-link"><i class="fas fa-arrow-right"></i> العودة للتسجيل</a>
+        <a href="admin.html" class="back-link" style="margin-top: 10px;"><i class="fas fa-chalkboard-user"></i> لوحة التحكم</a>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
     <script>
-        // المتغيرات
-        let videoStream = null;
-        let scanInterval = null;
-        let scanCount = 0;
-        let lastScanTime = 0;
-        let isProcessing = false;
-        let cameraActive = false;
-        
-        // بدء التشغيل
-        document.addEventListener('DOMContentLoaded', function() {
-            startCamera();
-        });
-        
-        // تشغيل الكاميرا
-        function startCamera() {
-            updateCameraStatus('جاري طلب الإذن...', 'warning');
+        (function() {
+            const SUPABASE_URL = "https://psiokgxrmjslvqhefuua.supabase.co";
+            const SUPABASE_ANON_KEY = "sb_publishable_cbmJkhMkFVjqzw5Fbq9SSA_OT9IWMyz";
+            const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
             
-            navigator.mediaDevices.getUserMedia({ 
-                video: { 
-                    facingMode: 'environment',
-                    width: { ideal: 1280 },
-                    height: { ideal: 720 }
-                } 
-            })
-            .then(function(stream) {
-                videoStream = stream;
-                const video = document.getElementById('preview');
-                video.srcObject = stream;
-                video.play();
-                cameraActive = true;
-                updateCameraStatus('الكاميرا جاهزة', 'active');
-                startScanning();
-                showToast('✅ الكاميرا جاهزة للعمل', 2000);
-            })
-            .catch(function(error) {
-                console.error('Camera error:', error);
-                cameraActive = false;
-                updateCameraStatus('❌ تعذر الوصول للكاميرا', 'error');
-                showToast('❌ تعذر الوصول للكاميرا - تأكد من الإذن', 3000);
-            });
-        }
-        
-        // بدء المسح المستمر
-        function startScanning() {
-            const video = document.getElementById('preview');
-            const canvas = document.createElement('canvas');
-            const context = canvas.getContext('2d');
+            let html5QrCode = null;
+            let isScanning = false;
+            let guestsList = [];
+            let lastScannedId = null;
+            let scannerInitialized = false;
             
-            scanInterval = setInterval(() => {
-                if (video.readyState === video.HAVE_ENOUGH_DATA && !isProcessing && cameraActive) {
-                    canvas.width = video.videoWidth;
-                    canvas.height = video.videoHeight;
-                    context.drawImage(video, 0, 0, canvas.width, canvas.height);
-                    
-                    const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-                    const code = jsQR(imageData.data, canvas.width, canvas.height, {
-                        inversionAttempts: "dontInvert"
-                    });
-                    
-                    if (code) {
-                        const now = Date.now();
-                        if (now - lastScanTime > 1500) {
-                            lastScanTime = now;
-                            handleScanResult(code.data);
-                        }
-                    }
+            // تحميل قائمة الضيوف
+            async function loadGuests() {
+                try {
+                    const { data, error } = await supabaseClient.from('guests').select('*');
+                    if (!error && data) guestsList = data;
+                    console.log('تم تحميل', guestsList.length, 'ضيف');
+                } catch (error) {
+                    console.error('خطأ في تحميل الضيوف:', error);
                 }
-            }, 200);
-        }
-        
-        // معالجة نتيجة المسح
-        async function handleScanResult(content) {
-            if (isProcessing) return;
-            
-            try {
-                const data = JSON.parse(content);
-                
-                if (!data || !data.id) {
-                    showResult('error', '❌ رمز غير صالح', '<p style="text-align:center;">الرمز الذي تم مسحه غير صالح</p>');
-                    return;
-                }
-                
-                isProcessing = true;
-                await checkGraduateStatus(data.id);
-                
-            } catch (error) {
-                showResult('error', '❌ خطأ', '<p style="text-align:center;">الرمز غير صالح</p>');
-                isProcessing = false;
             }
-        }
-        
-        // التحقق من حالة الخريج
-        function checkGraduateStatus(registrationId) {
-            return new Promise((resolve) => {
-                google.script.run
-                    .withSuccessHandler(function(status) {
-                        if (status.exists) {
-                            if (status.attended) {
-                                // تم تسجيله مسبقاً
-                                showResult(
-                                    'warning',
-                                    '⚠️ تم تسجيل الحضور مسبقاً',
-                                    `
-                                        <div class="result-row">
-                                            <span class="result-label">الاسم:</span>
-                                            <span class="result-value">${status.fullName}</span>
-                                        </div>
-                                        <div class="result-row">
-                                            <span class="result-label">الجامعة:</span>
-                                            <span class="result-value">${status.university}</span>
-                                        </div>
-                                        <div class="result-row">
-                                            <span class="result-label">الكلية:</span>
-                                            <span class="result-value">${status.faculty}</span>
-                                        </div>
-                                        <div class="result-row">
-                                            <span class="result-label">سنة التخرج:</span>
-                                            <span class="result-value">${status.graduationYear}</span>
-                                        </div>
-                                        <div class="result-row">
-                                            <span class="result-label">وقت التسجيل:</span>
-                                            <span class="result-value">${status.attendanceTime || 'غير مسجل'}</span>
-                                        </div>
-                                    `,
-                                    'warning'
-                                );
-                                isProcessing = false;
-                                resolve({ success: false, attended: true });
-                            } else {
-                                // خريج جديد - سجل حضوره
-                                registerAttendance(registrationId, status);
-                            }
+            
+            // تحديث حالة الضيف في قاعدة البيانات
+            async function updateAttendance(uniqueId, attended) {
+                try {
+                    const { error } = await supabaseClient
+                        .from('guests')
+                        .update({ attended: attended, attended_time: attended ? new Date().toISOString() : null })
+                        .eq('unique_id', uniqueId);
+                    
+                    if (!error) {
+                        await loadGuests();
+                        return true;
+                    }
+                    return false;
+                } catch (error) {
+                    console.error('خطأ في تحديث الحضور:', error);
+                    return false;
+                }
+            }
+            
+            // عرض رسالة النتيجة
+            function showResult(type, title, message, guest = null) {
+                const resultDiv = document.getElementById('scanResult');
+                resultDiv.className = 'scan-result ' + type;
+                
+                if (type === 'success') {
+                    resultDiv.innerHTML = `
+                        <div style="text-align:center;">
+                            <i class="fas fa-check-circle" style="font-size: 2rem; color: #10b981;"></i>
+                            <h3 style="color:#10b981; margin:8px 0;">${title}</h3>
+                            <div class="guest-info">
+                                <p><strong>👤 الاسم:</strong> ${escapeHtml(guest?.fullname || '')}</p>
+                                <p><strong>🎓 الجامعة:</strong> ${escapeHtml(guest?.university || '-')}</p>
+                                <p><strong>👥 المرافقين:</strong> ${guest?.companions || 0}</p>
+                            </div>
+                            <p style="color:#2c3e50;">تم تسجيل الدخول بنجاح</p>
+                        </div>
+                    `;
+                } else if (type === 'error') {
+                    resultDiv.innerHTML = `
+                        <div style="text-align:center;">
+                            <i class="fas fa-times-circle" style="font-size: 2rem; color: #ef4444;"></i>
+                            <h3 style="color:#ef4444; margin:8px 0;">${title}</h3>
+                            <p>${message}</p>
+                        </div>
+                    `;
+                } else if (type === 'info') {
+                    resultDiv.innerHTML = `
+                        <div style="text-align:center;">
+                            <i class="fas fa-info-circle" style="font-size: 2rem; color: #f59e0b;"></i>
+                            <h3 style="color:#f59e0b; margin:8px 0;">${title}</h3>
+                            <p>${message}</p>
+                        </div>
+                    `;
+                }
+                
+                resultDiv.style.display = 'block';
+                setTimeout(() => {
+                    resultDiv.style.display = 'none';
+                }, 5000);
+            }
+            
+            // معالجة QR المقروء
+            async function onQRCodeScanned(decodedText) {
+                // منع المسح المتكرر لنفس الـ QR
+                if (lastScannedId === decodedText) return;
+                lastScannedId = decodedText;
+                setTimeout(() => { lastScannedId = null; }, 3000);
+                
+                const foundGuest = guestsList.find(g => g.unique_id === decodedText);
+                
+                if (foundGuest) {
+                    if (!foundGuest.attended) {
+                        const success = await updateAttendance(foundGuest.unique_id, true);
+                        if (success) {
+                            showResult('success', '✅ دخول مسموح', '', foundGuest);
+                            // تحديث القائمة المحلية
+                            foundGuest.attended = true;
+                            foundGuest.attended_time = new Date().toISOString();
+                            
+                            // تنبيه صوتي
+                            try {
+                                const audio = new Audio('data:audio/wav;base64,U3RlYWx0aCB3YXZlIGZvciBiZWVw');
+                                audio.play().catch(()=>{});
+                            } catch(e) {}
                         } else {
-                            // غير مسجل
-                            showResult(
-                                'error',
-                                '❌ غير مسجل في النظام',
-                                `
-                                    <div class="result-row">
-                                        <span class="result-label">رقم التسجيل:</span>
-                                        <span class="result-value">${registrationId}</span>
-                                    </div>
-                                    <div class="result-row">
-                                        <span class="result-label">الحالة:</span>
-                                        <span class="result-value" style="color: #dc3545;">غير مسجل</span>
-                                    </div>
-                                    <div class="result-row">
-                                        <span class="result-label">نصيحة:</span>
-                                        <span class="result-value">يرجى التأكد من الرقم أو استخدام الإدخال اليدوي</span>
-                                    </div>
-                                `,
-                                'error'
-                            );
-                            isProcessing = false;
-                            resolve({ success: false, exists: false });
+                            showResult('error', '❌ خطأ', 'حدث خطأ في تسجيل الدخول، حاول مرة أخرى');
                         }
-                    })
-                    .withFailureHandler(function(error) {
-                        showResult('error', '❌ خطأ في الاتصال', '<p style="text-align:center;">حدث خطأ في التحقق من البيانات</p>');
-                        isProcessing = false;
-                        resolve({ success: false });
-                    })
-                    .checkGraduateStatus(registrationId);
-            });
-        }
-        
-        // تسجيل الحضور
-        function registerAttendance(registrationId, graduateInfo) {
-            google.script.run
-                .withSuccessHandler(function(result) {
-                    if (result && result.success) {
-                        scanCount++;
-                        updateCounters();
-                        
-                        showResult(
-                            'success',
-                            '✅ تم تسجيل الحضور',
-                            `
-                                <div class="result-row">
-                                    <span class="result-label">الاسم:</span>
-                                    <span class="result-value">${graduateInfo.fullName}</span>
-                                </div>
-                                <div class="result-row">
-                                    <span class="result-label">الجامعة:</span>
-                                    <span class="result-value">${graduateInfo.university}</span>
-                                </div>
-                                <div class="result-row">
-                                    <span class="result-label">الكلية:</span>
-                                    <span class="result-value">${graduateInfo.faculty}</span>
-                                </div>
-                                <div class="result-row">
-                                    <span class="result-label">التخصص:</span>
-                                    <span class="result-value">${graduateInfo.major || '-'}</span>
-                                </div>
-                                <div class="result-row">
-                                    <span class="result-label">سنة التخرج:</span>
-                                    <span class="result-value">${graduateInfo.graduationYear}</span>
-                                </div>
-                                <div class="result-row">
-                                    <span class="result-label">رقم التسجيل:</span>
-                                    <span class="result-value">${registrationId}</span>
-                                </div>
-                                <div class="result-row">
-                                    <span class="result-label">عدد المرافقين:</span>
-                                    <span class="result-value">${graduateInfo.companions}</span>
-                                </div>
-                                <div class="result-row">
-                                    <span class="result-label">وقت الحضور:</span>
-                                    <span class="result-value">${new Date().toLocaleTimeString('ar-SA')}</span>
-                                </div>
-                            `,
-                            'success'
-                        );
-                        
-                        window.parent.postMessage({
-                            type: 'QR_SCAN_RESULT',
-                            data: { id: registrationId, name: graduateInfo.fullName, success: true }
-                        }, '*');
-                        
-                        showToast(`✅ تم تسجيل ${graduateInfo.fullName}`, 2000);
-                        
                     } else {
-                        showResult('error', '❌ فشل التسجيل', `<p style="text-align:center;">${result?.message || 'حدث خطأ'}</p>`, 'error');
+                        const time = foundGuest.attended_time ? new Date(foundGuest.attended_time).toLocaleString('ar-SA') : 'غير محدد';
+                        showResult('info', '⚠️ سبق الدخول', `تم دخول ${foundGuest.fullname} مسبقاً في ${time}`);
                     }
-                    isProcessing = false;
-                })
-                .withFailureHandler(function(error) {
-                    showResult('error', '❌ خطأ', '<p style="text-align:center;">حدث خطأ في الاتصال بالخادم</p>', 'error');
-                    isProcessing = false;
-                })
-                .markAttendance(registrationId);
-        }
-        
-        // عرض النتيجة
-        function showResult(type, title, content, subType = '') {
-            const card = document.getElementById('resultCard');
-            const icon = document.getElementById('resultIcon');
-            const titleEl = document.getElementById('resultTitle');
-            const contentEl = document.getElementById('resultContent');
-            
-            card.className = 'result-card ' + type;
-            contentEl.innerHTML = content;
-            titleEl.textContent = title;
-            
-            if (type === 'success') {
-                icon.className = 'fas fa-check-circle';
-                icon.style.color = '#28a745';
-            } else if (type === 'error') {
-                icon.className = 'fas fa-times-circle';
-                icon.style.color = '#dc3545';
-            } else if (type === 'warning') {
-                icon.className = 'fas fa-exclamation-triangle';
-                icon.style.color = '#ffc107';
-            } else {
-                icon.className = 'fas fa-info-circle';
-                icon.style.color = '#17a2b8';
-            }
-            
-            card.style.display = 'block';
-            
-            setTimeout(() => {
-                if (card.style.display === 'block') {
-                    card.style.display = 'none';
+                } else {
+                    showResult('error', '❌ QR غير معروف', 'هذا الرمز غير مسجل في النظام');
                 }
-            }, 5000);
-        }
-        
-        // إظهار إشعار سريع
-        function showToast(message, duration) {
-            const toast = document.getElementById('toast');
-            const toastMsg = document.getElementById('toastMessage');
-            toastMsg.textContent = message;
-            toast.style.display = 'block';
-            
-            setTimeout(() => {
-                toast.style.display = 'none';
-            }, duration);
-        }
-        
-        // تحديث العدادات
-        function updateCounters() {
-            document.getElementById('scanCounter').textContent = scanCount;
-            document.getElementById('liveCounter').textContent = scanCount;
-        }
-        
-        // تحديث حالة الكاميرا
-        function updateCameraStatus(message, status) {
-            const statusEl = document.getElementById('cameraStatus');
-            if (status === 'active') {
-                statusEl.innerHTML = '<i class="fas fa-circle"></i> الكاميرا جاهزة';
-                statusEl.style.color = '#28a745';
-            } else if (status === 'warning') {
-                statusEl.innerHTML = '<i class="fas fa-exclamation-triangle"></i> ' + message;
-                statusEl.style.color = '#ffc107';
-            } else {
-                statusEl.innerHTML = '<i class="fas fa-times-circle"></i> ' + message;
-                statusEl.style.color = '#dc3545';
-            }
-        }
-        
-        // إيقاف المسح
-        function stopScanning() {
-            if (scanInterval) {
-                clearInterval(scanInterval);
-                scanInterval = null;
-            }
-        }
-        
-        // إغلاق الماسح
-        function closeScanner() {
-            stopScanning();
-            
-            if (videoStream) {
-                videoStream.getTracks().forEach(track => track.stop());
-                videoStream = null;
             }
             
-            window.parent.postMessage({ type: 'CLOSE_SCANNER' }, '*');
-        }
-        
-        // استقبال رسائل من الصفحة الرئيسية
-        window.addEventListener('message', function(event) {
-            if (event.data.type === 'RESTART_SCANNER') {
-                isProcessing = false;
+            // بدء الماسح
+            async function startScanner() {
+                try {
+                    // تحديث حالة الواجهة
+                    updateScannerStatus('جاري طلب الإذن...', 'loading');
+                    
+                    // التحقق من دعم الكاميرا
+                    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                        throw new Error('المتصفح لا يدعم الكاميرا');
+                    }
+                    
+                    // طلب إذن الكاميرا أولاً
+                    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                    stream.getTracks().forEach(track => track.stop()); // إيقاف مؤقتاً
+            
+                    // إيقاف الماسح السابق إن وجد
+                    if (html5QrCode) {
+                        try { await html5QrCode.stop(); } catch(e) {}
+                        try { await html5QrCode.clear(); } catch(e) {}
+                    }
+                    
+                    // تهيئة الماسح
+                    const scannerDiv = document.getElementById('qr-reader');
+                    scannerDiv.innerHTML = '';
+                    
+                    html5QrCode = new Html5Qrcode("qr-reader");
+                    
+                    const config = {
+                        fps: 15,
+                        qrbox: { width: 280, height: 280 },
+                        aspectRatio: 1.0,
+                        videoConstraints: {
+                            facingMode: "environment",
+                            width: { ideal: 1280 },
+                            height: { ideal: 720 }
+                        }
+                    };
+                    
+                    await html5QrCode.start(
+                        { facingMode: "environment" },
+                        config,
+                        (decodedText) => {
+                            onQRCodeScanned(decodedText);
+                        },
+                        (error) => {
+                            // تجاهل أخطاء المسح المتكررة
+                            if (error && !error.includes('No QR code found')) {
+                                console.log('خطأ في المسح:', error);
+                            }
+                        }
+                    );
+                    
+                    isScanning = true;
+                    updateScannerStatus('نشط - جاهز للمسح', 'active');
+                    
+                    document.getElementById('startScanBtn').style.display = 'none';
+                    document.getElementById('stopScanBtn').style.display = 'flex';
+                    document.getElementById('permissionWarning').style.display = 'none';
+                    
+                } catch (error) {
+                    console.error('خطأ في تشغيل الكاميرا:', error);
+                    updateScannerStatus('غير نشط', 'inactive');
+                    
+                    if (error.name === 'NotAllowedError' || error.message.includes('Permission denied')) {
+                        document.getElementById('permissionWarning').style.display = 'block';
+                        showResult('error', '❌ مطلوب إذن الكاميرا', 'يرجى السماح بالوصول إلى الكاميرا');
+                    } else if (error.name === 'NotFoundError' || error.message.includes('No camera')) {
+                        showResult('error', '❌ لا توجد كاميرا', 'لا يوجد كاميرا على هذا الجهاز');
+                    } else {
+                        showResult('error', '❌ خطأ في الكاميرا', error.message || 'تعذر الوصول للكاميرا');
+                    }
+                }
             }
-        });
+            
+            // إيقاف الماسح
+            async function stopScanner() {
+                if (html5QrCode && isScanning) {
+                    try {
+                        await html5QrCode.stop();
+                        await html5QrCode.clear();
+                        isScanning = false;
+                    } catch(e) {
+                        console.error('خطأ في إيقاف الماسح:', e);
+                    }
+                }
+                
+                updateScannerStatus('متوقف', 'inactive');
+                
+                document.getElementById('startScanBtn').style.display = 'flex';
+                document.getElementById('stopScanBtn').style.display = 'none';
+                document.getElementById('qr-reader').innerHTML = '';
+            }
+            
+            // تحديث حالة الماسح في الواجهة
+            function updateScannerStatus(text, state) {
+                const statusText = document.getElementById('scannerStatusText');
+                const statusDot = document.getElementById('statusDot');
+                const cameraStatus = document.getElementById('cameraStatus');
+                
+                if (statusText) statusText.innerText = text;
+                if (cameraStatus) cameraStatus.innerText = text;
+                
+                if (state === 'active') {
+                    statusDot.className = 'status-dot active';
+                } else {
+                    statusDot.className = 'status-dot inactive';
+                }
+            }
+            
+            function escapeHtml(str) {
+                if (!str) return '';
+                return str.replace(/[&<>]/g, function(m) {
+                    if (m === '&') return '&amp;';
+                    if (m === '<') return '&lt;';
+                    if (m === '>') return '&gt;';
+                    return m;
+                });
+            }
+            
+            // إضافة مستمعي الأحداث
+            document.getElementById('startScanBtn').addEventListener('click', startScanner);
+            document.getElementById('stopScanBtn').addEventListener('click', stopScanner);
+            
+            // تحميل البيانات عند بدء التشغيل
+            loadGuests();
+            setInterval(loadGuests, 10000); // تحديث كل 10 ثوانٍ
+            
+            // التأكد من إغلاق الماسح عند مغادرة الصفحة
+            window.addEventListener('beforeunload', () => {
+                if (isScanning && html5QrCode) {
+                    html5QrCode.stop().catch(()=>{});
+                }
+            });
+            
+            // التحقق من دعم الكاميرا عند تحميل الصفحة
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                document.getElementById('permissionWarning').innerHTML = `
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>المتصفح غير مدعوم</strong><br>
+                    المتصفح الحالي لا يدعم الكاميرا. يرجى استخدام Chrome أو Safari أو Edge.
+                `;
+                document.getElementById('permissionWarning').style.display = 'block';
+                document.getElementById('startScanBtn').disabled = true;
+                document.getElementById('startScanBtn').style.opacity = '0.5';
+            }
+        })();
     </script>
 </body>
 </html>
