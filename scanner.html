@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title> Kütahya İHH Yönetim Sistemi</title>
+<title>İHH Yönetim Sistemi</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
@@ -247,7 +247,7 @@ tr:hover td{background:var(--p50);}
   <div class="lb">
     <div class="ll">
       <div class="lc">İHH</div>
-      <h1>Kütahya İHH Yönetim Sistemi</h1>
+      <h1>İHH Yönetim Sistemi</h1>
       <p>İnsani Yardım Vakfı · Güvenli Giriş</p>
     </div>
     <!-- Step 1: Login -->
@@ -271,7 +271,7 @@ tr:hover td{background:var(--p50);}
   <button class="hmenu-btn" onclick="toggleSB()" type="button">☰</button>
   <div class="hlogo">
     <div class="hc">İHH</div>
-    <div><div class="hn">Kütahya İHH</div><div class="hs">Yönetim Sistemi</div></div>
+    <div><div class="hn">İHH VAKFI</div><div class="hs">Yönetim Sistemi</div></div>
   </div>
   <div class="hstats">
     <div class="hst"><span class="v" id="hd">0</span><span class="l">Bağışçı</span></div>
@@ -323,8 +323,8 @@ tr:hover td{background:var(--p50);}
 <div class="pg" id="page-donors">
   <div class="ph"><div class="pt">🤝 Bağışçılar</div><button class="btn bp" onclick="openM('m-donor')">➕ Yeni Bağışçı</button></div>
   <div class="fb">
-    <div class="fgrp"><label>Ara</label><input id="dsr" type="text" placeholder="İsim veya tel..." oninput="rD()"></div>
-    <div class="fgrp"><label>Şehir</label><input id="dsc" type="text" placeholder="Şehir..." oninput="rD()"></div>
+    <div class="fgrp"><label>Ara</label><input id="dsr" type="text" placeholder="İsim veya tel..." oninput="dRd()"></div>
+    <div class="fgrp"><label>Şehir</label><input id="dsc" type="text" placeholder="Şehir..." oninput="dRd()"></div>
   </div>
   <div class="card"><div class="tw"><table><thead><tr><th>Ad Soyad</th><th>Telefon</th><th>Şehir</th><th>Toplam</th><th>İşlem</th><th>Eylem</th></tr></thead><tbody id="dtb"></tbody></table></div></div>
 </div>
@@ -333,8 +333,8 @@ tr:hover td{background:var(--p50);}
 <div class="pg" id="page-bens">
   <div class="ph"><div class="pt">👥 Yararlanıcılar</div><button class="btn bp" onclick="openM('m-ben')">➕ Yeni Yararlanıcı</button></div>
   <div class="fb">
-    <div class="fgrp"><label>Ara</label><input id="bsr" type="text" placeholder="İsim veya TC..." oninput="rB()"></div>
-    <div class="fgrp"><label>Şehir</label><input id="bsc" type="text" placeholder="Şehir..." oninput="rB()"></div>
+    <div class="fgrp"><label>Ara</label><input id="bsr" type="text" placeholder="İsim veya TC..." oninput="dRb()"></div>
+    <div class="fgrp"><label>Şehir</label><input id="bsc" type="text" placeholder="Şehir..." oninput="dRb()"></div>
     <div class="fgrp"><label>Durum</label><select id="bss" onchange="rB()"><option value="">Tümü</option><option>aktif</option><option>pasif</option></select></div>
   </div>
   <div class="card"><div class="tw"><table><thead><tr><th>Ad Soyad</th><th>TC No</th><th>Telefon</th><th>Şehir</th><th>Durum</th><th>Nakit</th><th>Eylem</th></tr></thead><tbody id="btb"></tbody></table></div></div>
@@ -346,7 +346,7 @@ tr:hover td{background:var(--p50);}
   <div class="fb">
     <div class="fgrp"><label>Ay</label><select id="dmf" onchange="rDon()"><option value="">Tüm Aylar</option><option>Ocak</option><option>Şubat</option><option>Mart</option><option>Nisan</option><option>Mayıs</option><option>Haziran</option><option>Temmuz</option><option>Ağustos</option><option>Eylül</option><option>Ekim</option><option>Kasım</option><option>Aralık</option></select></div>
     <div class="fgrp"><label>Tür</label><select id="dtf" onchange="rDon()"><option value="">Tüm Türler</option><option>Nakit</option><option>Kıyafet</option><option>Erzak Sepeti</option><option>Kart</option><option>Diğer</option></select></div>
-    <div class="fgrp"><label>Ara</label><input id="dsf" type="text" placeholder="Bağışçı/yararlanıcı..." oninput="rDon()"></div>
+    <div class="fgrp"><label>Ara</label><input id="dsf" type="text" placeholder="Bağışçı/yararlanıcı..." oninput="dRDon()"></div>
     <div class="fgrp"><label>Başlangıç</label><input type="date" id="ddf" onchange="rDon()"></div>
     <div class="fgrp"><label>Bitiş</label><input type="date" id="ddt" onchange="rDon()"></div>
   </div>
@@ -361,8 +361,8 @@ tr:hover td{background:var(--p50);}
       <button class="btn bp" onclick="openM('m-orphan')">➕ Yeni Yetim</button>
     </div></div>
   <div class="fb">
-    <div class="fgrp"><label>Ara</label><input id="orsr" type="text" placeholder="İsim veya numara..." oninput="rO()"></div>
-    <div class="fgrp"><label>Şehir</label><input id="orsc" type="text" placeholder="Şehir..." oninput="rO()"></div>
+    <div class="fgrp"><label>Ara</label><input id="orsr" type="text" placeholder="İsim veya numara..." oninput="dRo()"></div>
+    <div class="fgrp"><label>Şehir</label><input id="orsc" type="text" placeholder="Şehir..." oninput="dRo()"></div>
   </div>
   <div class="og" id="orgrid"></div>
 </div>
@@ -377,7 +377,7 @@ tr:hover td{background:var(--p50);}
     <div class="sc a"><div class="sv" id="gbm">₺0</div><div class="sl">Bu Ay</div></div>
   </div>
   <div class="fb">
-    <div class="fgrp"><label>Ara</label><input id="gbsr" type="text" placeholder="İsim/tel..." oninput="rGB()"></div>
+    <div class="fgrp"><label>Ara</label><input id="gbsr" type="text" placeholder="İsim/tel..." oninput="dRgb()"></div>
     <div class="fgrp"><label>Tür</label><select id="gbtf" onchange="rGB()"><option value="">Tüm Türler</option><option>Nakit</option><option>Kıyafet</option><option>Erzak Sepeti</option><option>Kart</option><option>Diğer</option></select></div>
     <div class="fgrp"><label>Ay</label><select id="gbmf" onchange="rGB()"><option value="">Tüm Aylar</option><option>Ocak</option><option>Şubat</option><option>Mart</option><option>Nisan</option><option>Mayıs</option><option>Haziran</option><option>Temmuz</option><option>Ağustos</option><option>Eylül</option><option>Ekim</option><option>Kasım</option><option>Aralık</option></select></div>
     <div class="fgrp"><label>Başlangıç</label><input type="date" id="gbdf" onchange="rGB()"></div>
@@ -399,7 +399,7 @@ tr:hover td{background:var(--p50);}
   <div class="fb">
     <div class="fgrp"><label>Ay</label><select id="kmf" onchange="rKumb()"><option value="">Tüm Aylar</option><option>Ocak</option><option>Şubat</option><option>Mart</option><option>Nisan</option><option>Mayıs</option><option>Haziran</option><option>Temmuz</option><option>Ağustos</option><option>Eylül</option><option>Ekim</option><option>Kasım</option><option>Aralık</option></select></div>
     <div class="fgrp"><label>Yıl</label><select id="kyf" onchange="rKumb()"><option value="">Tüm Yıllar</option><option>2023</option><option>2024</option><option>2025</option><option>2026</option></select></div>
-    <div class="fgrp"><label>Ara</label><input id="ksr" type="text" placeholder="Kumbara adı/no..." oninput="rKumb()"></div>
+    <div class="fgrp"><label>Ara</label><input id="ksr" type="text" placeholder="Kumbara adı/no..." oninput="dRk()"></div>
     <button class="btn bsu sm" onclick="exKumb()" style="align-self:flex-end;">📥 Excel</button>
   </div>
   <div class="card"><div class="tw"><table><thead><tr><th>Tarih</th><th>Ay/Yıl</th><th>Kumbara Adı/No</th><th>Konum</th><th>Miktar (₺)</th><th>Toplayan</th><th>Not</th><th>Eylem</th></tr></thead><tbody id="kumbtb"></tbody></table></div></div>
@@ -515,7 +515,7 @@ tr:hover td{background:var(--p50);}
   <div class="mhd"><div class="mti" id="mt-don">💝 Bağış İşlemi</div><button class="mcl" onclick="closeM('m-don')">✕</button></div>
   <div class="mbd"><div class="fg">
     <div class="fgrp"><label>Tarih *</label><input type="date" id="donf1"></div>
-    <div class="fgrp"><label>Bağışçı *</label><select id="donf2"><option value="">-- Seçin --</option></select></div>
+    <div class="fgrp"><label>Bağışçı <span style="font-weight:400;color:var(--lt)">(opsiyonel)</span></label><select id="donf2"><option value="">-- Bağışçısız --</option></select></div>
     <div class="fgrp"><label>Yararlanıcı *</label><select id="donf3"><option value="">-- Seçin --</option></select></div>
     <div class="fgrp"><label>Bağış Türü *</label><select id="donf4" onchange="dntc()"><option value="">-- Seçin --</option><option>Nakit</option><option>Kıyafet</option><option>Erzak Sepeti</option><option>Kart</option><option>Diğer</option></select></div>
     <div class="fgrp" id="donamg"><label>Miktar (₺)</label><div class="aw"><span class="acc">₺</span><input type="number" id="donf5" placeholder="0.00" min="0"></div></div>
@@ -750,11 +750,11 @@ function rUsers(){
     <td><div class="tda">${!isAdmin&&CUR_USER.role==='admin'?`<button class="btn bd2 xs" onclick="delUser('${u.id}')">🗑 Kaldır</button>`:'<span style="font-size:11px;color:var(--muted)">—</span>'}</div></td></tr>`;
   });
 }
-async function saveUser(){
+function saveUser(){
   const nm=document.getElementById('uf1').value.trim();const em=document.getElementById('uf2').value.trim().toLowerCase();const role=document.getElementById('uf3').value;
   if(!nm||!em){showN('❌ Ad ve e-posta zorunlu!');return;}
   if(USERS.find(x=>x.email===em)){showN('❌ Bu e-posta zaten kayıtlı!');return;}
-  const tempHash=await sha256('ihh2025'); // Default pass
+  const tempHash='dfaa9f9a410a3c62f514af4e377c6251e17446b0ef3cb5004db65fc507ee1402'; // SHA256('ihh2025')
   USERS.push({id:uid(),name:nm,email:em,hash:tempHash,role,created:new Date().toISOString(),lastLogin:''});
   localStorage.setItem(USERS_KEY,JSON.stringify(USERS));
   closeM('m-adduser');document.getElementById('uf1').value='';document.getElementById('uf2').value='';
@@ -771,7 +771,7 @@ function delUser(id){
 // GOOGLE SHEETS SYNC CONFIG
 // ══════════════════════════════════════════
 // بعد نشر Google Apps Script، اضغط زر "⚙️ Sheets Bağla" في الرابور لإدخال الرابط
-const GAS_URL = localStorage.getItem('ihh_gas_url') || 'https://script.google.com/macros/s/AKfycbwX_X0RtjrCc82uiID7IpQJutPQLNhqogn8IRRqLHe2qb-hPpfDixjghXR6yPFBJPgJDg/exec';
+const GAS_URL = localStorage.getItem('ihh_gas_url') || '';
 function setGasUrl(){const url=prompt('Google Apps Script Web App URL girin:\n(Apps Script > Deploy > Web App > URL)',localStorage.getItem('ihh_gas_url')||'');if(url&&url.startsWith('https://')){localStorage.setItem('ihh_gas_url',url);showN('✔ URL kaydedildi! Artık veriler otomatik senkronize edilecek.');}}
 async function syncAllToSheets(){
   const url=localStorage.getItem('ihh_gas_url');
@@ -800,14 +800,30 @@ let DB={donors:[],bens:[],dons:[],orphans:[],odons:[],depts:[],gb:[],kumbs:[],
 const DEPTS=[{name:'Genç İHA',icon:'🧑',color:'#1a7f3c',bg:'#e8f5ee'},{name:'Kız Genç İHA',icon:'👧',color:'#9333ea',bg:'#ede9fe'},{name:'Kadın Kolları',icon:'👩',color:'#db2777',bg:'#fce7f3'},{name:'Arama Kurtarma',icon:'🔍',color:'#d97706',bg:'#fef3c7'}];
 
 // Save all DB to localStorage (simulate Excel persistence)
+// ── FAST SAVE: synchronous localStorage only, no blocking ──
 function saveDB(){
-  localStorage.setItem('ihh_db_v2',JSON.stringify({donors:DB.donors,bens:DB.bens,dons:DB.dons,orphans:DB.orphans,odons:DB.odons,depts:DB.depts,gb:DB.gb,kumbs:DB.kumbs}));
-  // Auto-sync to Google Sheets if configured
-  const url=localStorage.getItem('ihh_gas_url');
-  if(url){
-    const payload=JSON.stringify({action:'syncAll',db:{donors:DB.donors,bens:DB.bens,dons:DB.dons,orphans:DB.orphans,odons:DB.odons,depts:DB.depts,gb:DB.gb,kumbs:DB.kumbs}});
-    fetch(url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:payload}).catch(()=>{});
-  }
+  try{
+    localStorage.setItem('ihh_db_v2',JSON.stringify({
+      donors:DB.donors,bens:DB.bens,dons:DB.dons,orphans:DB.orphans,
+      odons:DB.odons,depts:DB.depts,gb:DB.gb,kumbs:DB.kumbs
+    }));
+  }catch(e){console.warn('saveDB error:',e);}
+}
+
+// ── DEBOUNCED Excel/Sheets export (runs 3s after last save, non-blocking) ──
+let _xlTimer=null;
+function schedXL(){
+  clearTimeout(_xlTimer);
+  _xlTimer=setTimeout(()=>{
+    // Run in a microtask so UI stays responsive
+    Promise.resolve().then(()=>autoExportXL());
+    // Also sync to Sheets if configured
+    const url=localStorage.getItem('ihh_gas_url');
+    if(url){
+      const payload=JSON.stringify({action:'syncAll',db:{donors:DB.donors,bens:DB.bens,dons:DB.dons,orphans:DB.orphans,odons:DB.odons,depts:DB.depts,gb:DB.gb,kumbs:DB.kumbs}});
+      fetch(url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:payload}).catch(()=>{});
+    }
+  },3000);
 }
 function loadDB(){
   const saved=localStorage.getItem('ihh_db_v2');
@@ -872,6 +888,8 @@ function showN(msg,type=''){const n=document.getElementById('notif');n.textConte
 function today(){return new Date().toISOString().substr(0,10);}
 function openM(id){document.getElementById(id).classList.add('open');}
 function closeM(id){document.getElementById(id).classList.remove('open');DB.eid=null;DB.etype=null;}
+// Debounce helper
+function debounce(fn,ms=120){let t;return function(...a){clearTimeout(t);t=setTimeout(()=>fn.apply(this,a),ms);};}
 
 // Sidebar mobile
 function toggleSB(){
@@ -883,14 +901,17 @@ function toggleSB(){
 function sp(id){
   document.querySelectorAll('.pg').forEach(p=>p.classList.remove('ac'));
   document.querySelectorAll('.nav').forEach(n=>n.classList.remove('ac'));
-  document.getElementById('page-'+id).classList.add('ac');
+  const pg=document.getElementById('page-'+id);if(pg)pg.classList.add('ac');
   document.querySelectorAll('.nav').forEach(n=>{if(n.getAttribute('onclick')&&n.getAttribute('onclick').includes("'"+id+"'"))n.classList.add('ac');});
-  // Close sidebar on mobile
   document.getElementById('sb').classList.remove('open');
   document.getElementById('sb-ov').classList.remove('open');
-  if(id==='donors')rD();if(id==='bens')rB();if(id==='dons')rDon();if(id==='orphans')rO();
-  if(id==='gb')rGB();if(id==='kumb')rKumb();if(id==='depts'){rDC();rDH();}
-  if(id==='users'){rUsers();}if(id==='rep')rRep();
+  // Render in next frame so page switch animation is smooth
+  requestAnimationFrame(()=>{
+    if(id==='donors')rD();else if(id==='bens')rB();else if(id==='dons')rDon();else if(id==='orphans')rO();
+    else if(id==='gb')rGB();else if(id==='kumb')rKumb();else if(id==='depts'){rDC();rDH();}
+    else if(id==='users')rUsers();else if(id==='rep')rRep();
+    else if(id==='dash')rDash();
+  });
 }
 
 // ── FILLS ──
@@ -913,23 +934,23 @@ function saveDonor(){
   if(DB.eid){Object.assign(DB.donors.find(x=>x.id===DB.eid),obj);}
   else{DB.donors.push({id:uid(),...obj});}
   closeM('m-donor');document.getElementById('mt-donor').textContent='🤝 Yeni Bağışçı';
-  showN(DB.eid?'✔ Bağışçı güncellendi!':'✔ Bağışçı eklendi!');saveDB();autoExportXL();rD();updStats();
+  showN(DB.eid?'✔ Bağışçı güncellendi!':'✔ Bağışçı eklendi!');saveDB();schedXL();rD();updStats();
 }
 function rD(){
   const sr=document.getElementById('dsr').value.toLowerCase();const sc=document.getElementById('dsc').value.toLowerCase();
-  const tb=document.getElementById('dtb');tb.innerHTML='';
+  const tb=document.getElementById('dtb');
   let list=DB.donors.filter(d=>(!sr||(d.f1+' '+d.f2+' '+(d.f3||'')).toLowerCase().includes(sr))&&(!sc||(d.f5||'').toLowerCase().includes(sc)));
   if(!list.length){tb.innerHTML='<tr><td colspan="6"><div class="emp"><div class="ei">🤝</div><div class="et">Bağışçı bulunamadı</div></div></td></tr>';return;}
-  list.forEach(d=>{
+  tb.innerHTML=list.map(d=>{
     const dns=DB.dons.filter(x=>x.dr===d.id);const tot=dns.filter(x=>x.ty==='Nakit').reduce((a,x)=>a+Number(x.am||0),0);
     const cl=aclr(d.f1);
-    tb.innerHTML+=`<tr><td><div style="display:flex;align-items:center;gap:10px;"><div class="av" style="width:34px;height:34px;font-size:12px;background:${cl}">${ini(d.f1+' '+d.f2)}</div><div><div style="font-weight:800;font-size:var(--fs-sm)">${d.f1} ${d.f2}</div><div style="font-size:var(--fs-xs);color:var(--muted)">${d.f4||''}</div></div></div></td>
+    return`<tr><td><div style="display:flex;align-items:center;gap:10px;"><div class="av" style="width:34px;height:34px;font-size:12px;background:${cl}">${ini(d.f1+' '+d.f2)}</div><div><div style="font-weight:800;font-size:var(--fs-sm)">${d.f1} ${d.f2}</div><div style="font-size:var(--fs-xs);color:var(--muted)">${d.f4||''}</div></div></div></td>
     <td>${d.f3||'-'}</td><td>${d.f5||'-'}</td><td><strong style="color:var(--p)">₺${fmt(tot)}</strong></td>
     <td><span class="bdg bgg">${dns.length}</span></td>
     <td><div class="tda"><button class="btn bs xs" onclick="showDonorDet('${d.id}')">📋</button><button class="btn ba xs" onclick="editDonor('${d.id}')">✏️</button><button class="btn bd2 xs" onclick="delDonor('${d.id}')">🗑</button></div></td></tr>`;
-  });
+  }).join('');
 }
-function delDonor(id){if(!confirm('Silinsin mi?'))return;DB.donors=DB.donors.filter(d=>d.id!==id);saveDB();autoExportXL();rD();updStats();showN('🗑 Silindi');}
+function delDonor(id){if(!confirm('Silinsin mi?'))return;DB.donors=DB.donors.filter(d=>d.id!==id);saveDB();schedXL();rD();updStats();showN('🗑 Silindi');}
 function showDonorDet(id){
   const d=DB.donors.find(x=>x.id===id);if(!d)return;DB.curDon=id;
   document.getElementById('dddti').textContent='🤝 '+d.f1+' '+d.f2;
@@ -965,24 +986,24 @@ function saveBen(){
   if(DB.eid){Object.assign(DB.bens.find(x=>x.id===DB.eid),obj);}
   else{DB.bens.push({id:uid(),...obj});}
   closeM('m-ben');document.getElementById('mt-ben').textContent='👥 Yeni Yararlanıcı';
-  showN(DB.eid?'✔ Yararlanıcı güncellendi!':'✔ Yararlanıcı eklendi!');saveDB();autoExportXL();rB();updStats();
+  showN(DB.eid?'✔ Yararlanıcı güncellendi!':'✔ Yararlanıcı eklendi!');saveDB();schedXL();rB();updStats();
 }
 function rB(){
   const sr=document.getElementById('bsr').value.toLowerCase();const sc=document.getElementById('bsc').value.toLowerCase();const ss=document.getElementById('bss').value;
   const tb=document.getElementById('btb');tb.innerHTML='';
   let list=DB.bens.filter(b=>(!sr||(b.f1+' '+b.f2+' '+(b.f3||'')).toLowerCase().includes(sr))&&(!sc||(b.f12||'').toLowerCase().includes(sc))&&(!ss||b.f11===ss));
   if(!list.length){tb.innerHTML='<tr><td colspan="7"><div class="emp"><div class="ei">👥</div><div class="et">Yararlanıcı bulunamadı</div></div></td></tr>';return;}
-  list.forEach(b=>{
+  tb.innerHTML=list.map(b=>{
     const dns=DB.dons.filter(x=>x.bn===b.id);const tot=dns.filter(x=>x.ty==='Nakit').reduce((a,x)=>a+Number(x.am||0),0);
     const age=b.f4?Math.floor((new Date()-new Date(b.f4))/31557600000):'';
-    tb.innerHTML+=`<tr><td><div style="display:flex;align-items:center;gap:10px;"><div class="av" style="width:34px;height:34px;font-size:12px;background:${aclr(b.f1)}">${ini(b.f1+' '+b.f2)}</div><div><div style="font-weight:800">${b.f1} ${b.f2}</div><div style="font-size:var(--fs-xs);color:var(--muted)">${age?age+' yaş · ':''} ${b.f12||''}</div></div></div></td>
+    return`<tr><td><div style="display:flex;align-items:center;gap:10px;"><div class="av" style="width:34px;height:34px;font-size:12px;background:${aclr(b.f1)}">${ini(b.f1+' '+b.f2)}</div><div><div style="font-weight:800">${b.f1} ${b.f2}</div><div style="font-size:var(--fs-xs);color:var(--muted)">${age?age+' yaş · ':''} ${b.f12||''}</div></div></div></td>
     <td>${b.f3||'-'}</td><td>${b.f9||'-'}</td><td>${b.f12||'-'}</td>
     <td><span class="bdg ${b.f11==='aktif'?'bgg':'bggr'}">${b.f11==='aktif'?'Aktif':'Pasif'}</span></td>
     <td><strong style="color:var(--p)">₺${fmt(tot)}</strong> <span style="font-size:var(--fs-xs);color:var(--muted)">(${dns.length})</span></td>
     <td><div class="tda"><button class="btn bs xs" onclick="showBenDet('${b.id}')">📋 Dosya</button><button class="btn bp xs" onclick="openDonForBen('${b.id}')">💝</button><button class="btn ba xs" onclick="editBen('${b.id}')">✏️</button><button class="btn bd2 xs" onclick="delBen('${b.id}')">🗑</button></div></td></tr>`;
-  });
+  }).join('');
 }
-function delBen(id){if(!confirm('Silinsin mi?'))return;DB.bens=DB.bens.filter(b=>b.id!==id);saveDB();autoExportXL();rB();updStats();showN('🗑 Silindi');}
+function delBen(id){if(!confirm('Silinsin mi?'))return;DB.bens=DB.bens.filter(b=>b.id!==id);saveDB();schedXL();rB();updStats();showN('🗑 Silindi');}
 function showBenDet(id){
   const b=DB.bens.find(x=>x.id===id);if(!b)return;DB.curBen=id;
   document.getElementById('bndti').textContent='👥 '+b.f1+' '+b.f2+' — Dosya';
@@ -1041,14 +1062,14 @@ function editDon(id){
   openM('m-don');
 }
 function saveDon(){
-  const dr=document.getElementById('donf2').value;const bn=document.getElementById('donf3').value;const ty=document.getElementById('donf4').value;const dt=document.getElementById('donf1').value;
-  if(!dr||!bn||!ty||!dt){showN('❌ Zorunlu alanları doldurun!','err');return;}
+  const bn=document.getElementById('donf3').value;const ty=document.getElementById('donf4').value;const dt=document.getElementById('donf1').value;
+  if(!bn||!ty||!dt){showN('❌ Yararlanıcı, tür ve tarih zorunludur!','err');return;}
   let disp=ty;if(ty==='Diğer'){disp=document.getElementById('donf6').value.trim()||'Diğer';}
-  const obj={dr,bn,ty,disp,am:document.getElementById('donf5').value,lo:document.getElementById('donf7').value,no:document.getElementById('donf8').value,dt};
+  const obj={dr:document.getElementById('donf2').value,bn,ty,disp,am:document.getElementById('donf5').value,lo:document.getElementById('donf7').value,no:document.getElementById('donf8').value,dt};
   if(DB.eid){Object.assign(DB.dons.find(x=>x.id===DB.eid),obj);}
   else{DB.dons.push({id:uid(),...obj});}
   closeM('m-don');document.getElementById('donamg').style.display='block';document.getElementById('donotg').style.display='none';
-  showN(DB.eid?'✔ Bağış güncellendi!':'✔ Bağış eklendi!');saveDB();autoExportXL();rDon();updStats();
+  showN(DB.eid?'✔ Bağış güncellendi!':'✔ Bağış eklendi!');saveDB();schedXL();rDon();updStats();
   if(document.getElementById('m-bndet').classList.contains('open'))rBD();
 }
 function rDon(){
@@ -1056,13 +1077,13 @@ function rDon(){
   const tb=document.getElementById('dontb');tb.innerHTML='';
   let list=DB.dons.filter(d=>{const dn=DB.donors.find(x=>x.id===d.dr);const bn=DB.bens.find(x=>x.id===d.bn);const nm=((dn?dn.f1+' '+dn.f2:'')+(bn?bn.f1+' '+bn.f2:'')).toLowerCase();return(!mf||gm(d.dt)===mf)&&(!tf||d.ty===tf)&&(!sf||nm.includes(sf))&&(!df||d.dt>=df)&&(!dt2||d.dt<=dt2);});
   if(!list.length){tb.innerHTML='<tr><td colspan="7"><div class="emp"><div class="ei">💝</div><div class="et">Bağış bulunamadı</div></div></td></tr>';return;}
-  list.sort((a,b)=>new Date(b.dt)-new Date(a.dt)).forEach(d=>{
+  tb.innerHTML=list.sort((a,b)=>new Date(b.dt)-new Date(a.dt)).map(d=>{
     const dn=DB.donors.find(x=>x.id===d.dr);const bn=DB.bens.find(x=>x.id===d.bn);
-    tb.innerHTML+=`<tr><td>${fd(d.dt)}</td><td>${dn?dn.f1+' '+dn.f2:'?'}</td><td>${bn?bn.f1+' '+bn.f2:'?'}</td><td>${bdg(d.disp||d.ty)}</td><td>${d.ty==='Nakit'?`<strong style="color:var(--p)">₺${fmt(d.am)}</strong>`:d.disp||'-'}</td><td>${d.lo||'-'}</td>
+    return`<tr><td>${fd(d.dt)}</td><td>${dn?dn.f1+' '+dn.f2:'<span style="color:var(--muted);font-style:italic">—</span>'}</td><td>${bn?bn.f1+' '+bn.f2:'?'}</td><td>${bdg(d.disp||d.ty)}</td><td>${d.ty==='Nakit'?`<strong style="color:var(--p)">₺${fmt(d.am)}</strong>`:d.disp||'-'}</td><td>${d.lo||'-'}</td>
     <td><div class="tda"><button class="btn ba xs" onclick="editDon('${d.id}')">✏️</button><button class="btn bd2 xs" onclick="delDon('${d.id}')">🗑</button></div></td></tr>`;
-  });
+  }).join('');
 }
-function delDon(id){if(!confirm('Silinsin mi?'))return;DB.dons=DB.dons.filter(d=>d.id!==id);saveDB();autoExportXL();rDon();updStats();showN('🗑 Silindi');}
+function delDon(id){if(!confirm('Silinsin mi?'))return;DB.dons=DB.dons.filter(d=>d.id!==id);saveDB();schedXL();rDon();updStats();showN('🗑 Silindi');}
 
 // ── ORPHANS ──
 let orImgData='';
@@ -1082,7 +1103,7 @@ function saveOr(){
   else{DB.orphans.push({id:uid(),...obj});}
   closeM('m-orphan');orImgData='';const u=document.getElementById('oriup');u.innerHTML='<span style="font-size:24px">👦</span><span>Yükle</span>';
   document.getElementById('mt-orp').textContent='👦 Yetim Kaydı';
-  showN(DB.eid?'✔ Yetim güncellendi!':'✔ Yetim eklendi!');saveDB();autoExportXL();rO();updStats();
+  showN(DB.eid?'✔ Yetim güncellendi!':'✔ Yetim eklendi!');saveDB();schedXL();rO();updStats();
 }
 function rO(){
   const sr=document.getElementById('orsr').value.toLowerCase();const sc=document.getElementById('orsc').value.toLowerCase();
@@ -1103,7 +1124,7 @@ function rO(){
       </div></div>`;
   });
 }
-function delOrphan(id){if(!confirm('Silinsin mi?'))return;DB.orphans=DB.orphans.filter(o=>o.id!==id);saveDB();autoExportXL();rO();updStats();showN('🗑 Silindi');}
+function delOrphan(id){if(!confirm('Silinsin mi?'))return;DB.orphans=DB.orphans.filter(o=>o.id!==id);saveDB();schedXL();rO();updStats();showN('🗑 Silindi');}
 function showOrDet(id){
   const o=DB.orphans.find(x=>x.id===id);if(!o)return;DB.curOr=id;
   document.getElementById('ordti').textContent='👦 '+o.f1+' '+o.f2;
@@ -1159,7 +1180,7 @@ function saveOdon(){
   else{DB.odons.push({id:uid(),...obj});}
   closeM('m-odon');document.getElementById('odamg').style.display='block';document.getElementById('odotg').style.display='none';
   document.getElementById('mt-odon').textContent='💝 Yetim Bağışı';
-  showN(DB.eid?'✔ Güncellendi!':'✔ Yetim bağışı eklendi!');saveDB();autoExportXL();rO();updStats();
+  showN(DB.eid?'✔ Güncellendi!':'✔ Yetim bağışı eklendi!');saveDB();schedXL();rO();updStats();
   if(document.getElementById('m-ordet').classList.contains('open'))rOD();
 }
 function addOdonFromDet(){const id=DB.curOr;closeM('m-ordet');openOdonM(id);}
@@ -1184,7 +1205,7 @@ function saveGB(){
   if(DB.eid){Object.assign(DB.gb.find(x=>x.id===DB.eid),obj);}
   else{DB.gb.push({id:uid(),...obj});}
   closeM('m-gb');document.getElementById('gbamg').style.display='block';document.getElementById('gbotg').style.display='none';document.getElementById('mt-gb').textContent='🌍 Genel Bağış Kaydı';
-  showN(DB.eid?'✔ Güncellendi!':'✔ Genel bağış eklendi!');saveDB();autoExportXL();rGB();updStats();
+  showN(DB.eid?'✔ Güncellendi!':'✔ Genel bağış eklendi!');saveDB();schedXL();rGB();updStats();
 }
 function rGB(){
   const sr=document.getElementById('gbsr').value.toLowerCase();const tf=document.getElementById('gbtf').value;const mf=document.getElementById('gbmf').value;const df=document.getElementById('gbdf').value;const dt2=document.getElementById('gbdt').value;
@@ -1197,16 +1218,16 @@ function rGB(){
   document.getElementById('gbm').textContent='₺'+fmt(mTot);
   const tb=document.getElementById('gbtb');tb.innerHTML='';
   if(!list.length){tb.innerHTML='<tr><td colspan="9"><div class="emp"><div class="ei">🌍</div><div class="et">Kayıt bulunamadı</div></div></td></tr>';return;}
-  list.sort((a,b)=>new Date(b.dt)-new Date(a.dt)).forEach((g,i)=>{
+  tb.innerHTML=list.sort((a,b)=>new Date(b.dt)-new Date(a.dt)).map((g,i)=>{
     const nm=((g.f1||'')+' '+(g.f2||'')).trim()||'Anonim';
-    tb.innerHTML+=`<tr><td style="color:var(--muted)">${i+1}</td><td><strong>${fd(g.dt)}</strong></td>
+    return`<tr><td style="color:var(--muted)">${i+1}</td><td><strong>${fd(g.dt)}</strong></td>
     <td><div style="font-weight:800">${nm}</div></td><td>${g.f3||'-'}</td>
     <td>${bdg(g.disp||g.ty)}</td><td>${g.ty==='Nakit'?`<strong style="color:var(--p)">₺${fmt(g.am)}</strong>`:g.disp||'-'}</td>
     <td>${g.lo||'-'}</td><td style="color:var(--muted)">${g.no||'-'}</td>
     <td><div class="tda"><button class="btn ba xs" onclick="editGB('${g.id}')">✏️</button><button class="btn bd2 xs" onclick="delGB('${g.id}')">🗑</button></div></td></tr>`;
-  });
+  }).join('');
 }
-function delGB(id){if(!confirm('Silinsin mi?'))return;DB.gb=DB.gb.filter(g=>g.id!==id);saveDB();autoExportXL();rGB();updStats();showN('🗑 Silindi');}
+function delGB(id){if(!confirm('Silinsin mi?'))return;DB.gb=DB.gb.filter(g=>g.id!==id);saveDB();schedXL();rGB();updStats();showN('🗑 Silindi');}
 function exGB(){if(typeof XLSX==='undefined')return;const rows=[['#','Tarih','Ad','Soyad','Telefon','Şehir','Tür','Miktar','Yer','Teslim Alan','Not']];DB.gb.sort((a,b)=>new Date(b.dt)-new Date(a.dt)).forEach((g,i)=>rows.push([i+1,g.dt,g.f1||'',g.f2||'',g.f3||'',g.f4||'',g.disp||g.ty,g.am||'',g.lo||'',g.rv||'',g.no||'']));const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(rows),'Genel Bağışlar');XLSX.writeFile(wb,'GeneBagis_'+today()+'.xlsx');showN('📥 Excel indirildi!');}
 
 // ── KUMBARALAR ──
@@ -1223,7 +1244,7 @@ function saveKumb(){
   if(DB.eid){Object.assign(DB.kumbs.find(x=>x.id===DB.eid),obj);}
   else{DB.kumbs.push({id:uid(),...obj});}
   closeM('m-kumb');document.getElementById('mt-kumb').textContent='🪣 Kumbara Kaydı';
-  showN(DB.eid?'✔ Kumbara güncellendi!':'✔ Kumbara kaydı eklendi!');saveDB();autoExportXL();rKumb();updStats();
+  showN(DB.eid?'✔ Kumbara güncellendi!':'✔ Kumbara kaydı eklendi!');saveDB();schedXL();rKumb();updStats();
 }
 function rKumb(){
   const mf=document.getElementById('kmf').value;const yf=document.getElementById('kyf').value;const sr=document.getElementById('ksr').value.toLowerCase();
@@ -1238,12 +1259,12 @@ function rKumb(){
   const el=document.getElementById('skumb');if(el)el.textContent='₺'+fmt(total);
   const tb=document.getElementById('kumbtb');tb.innerHTML='';
   if(!list.length){tb.innerHTML='<tr><td colspan="8"><div class="emp"><div class="ei">🪣</div><div class="et">Kumbara kaydı bulunamadı</div></div></td></tr>';return;}
-  list.sort((a,b)=>new Date(b.f1)-new Date(a.f1)).forEach((k,i)=>{
-    tb.innerHTML+=`<tr><td>${fd(k.f1)}</td><td><span class="bdg bgpk">${k.f2||'-'} ${k.f3||''}</span></td><td><strong>${k.f4||'-'}</strong></td><td>${k.f5||'-'}</td><td><strong style="color:var(--pink)">₺${fmt(k.f6)}</strong></td><td>${k.f7||'-'}</td><td style="color:var(--muted)">${k.f8||'-'}</td>
+  tb.innerHTML=list.sort((a,b)=>new Date(b.f1)-new Date(a.f1)).map((k,i)=>{
+    return`<tr><td>${fd(k.f1)}</td><td><span class="bdg bgpk">${k.f2||'-'} ${k.f3||''}</span></td><td><strong>${k.f4||'-'}</strong></td><td>${k.f5||'-'}</td><td><strong style="color:var(--pink)">₺${fmt(k.f6)}</strong></td><td>${k.f7||'-'}</td><td style="color:var(--muted)">${k.f8||'-'}</td>
     <td><div class="tda"><button class="btn ba xs" onclick="editKumb('${k.id}')">✏️</button><button class="btn bd2 xs" onclick="delKumb('${k.id}')">🗑</button></div></td></tr>`;
-  });
+  }).join('');
 }
-function delKumb(id){if(!confirm('Silinsin mi?'))return;DB.kumbs=DB.kumbs.filter(k=>k.id!==id);saveDB();autoExportXL();rKumb();updStats();showN('🗑 Silindi');}
+function delKumb(id){if(!confirm('Silinsin mi?'))return;DB.kumbs=DB.kumbs.filter(k=>k.id!==id);saveDB();schedXL();rKumb();updStats();showN('🗑 Silindi');}
 function exKumb(){if(typeof XLSX==='undefined')return;const rows=[['Tarih','Ay','Yıl','Kumbara Adı','Konum','Miktar (₺)','Toplayan','Not']];DB.kumbs.sort((a,b)=>new Date(b.f1)-new Date(a.f1)).forEach(k=>rows.push([k.f1,k.f2||'',k.f3||'',k.f4||'',k.f5||'',k.f6||'',k.f7||'',k.f8||'']));const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(rows),'Kumbaralar');XLSX.writeFile(wb,'Kumbaralar_'+today()+'.xlsx');showN('📥 Excel indirildi!');}
 
 // ── DEPTS ──
@@ -1260,7 +1281,7 @@ function saveDept(){
   if(DB.eid){Object.assign(DB.depts.find(x=>x.id===DB.eid),obj);}
   else{DB.depts.push({id:uid(),...obj});}
   closeM('m-dept');document.getElementById('mt-dept').textContent='🏢 Birim İşlemi';
-  showN(DB.eid?'✔ Güncellendi!':'✔ Birim kaydı eklendi!');saveDB();autoExportXL();rDC();rDH();
+  showN(DB.eid?'✔ Güncellendi!':'✔ Birim kaydı eklendi!');saveDB();schedXL();rDC();rDH();
 }
 function rDC(){
   const c=document.getElementById('dpcards');c.innerHTML='';
@@ -1275,13 +1296,13 @@ function rDH(){
   const tb=document.getElementById('dptb');tb.innerHTML='';
   let list=DB.depts.filter(e=>(!fn||e.nm===fn)&&(!ft||e.ty===ft));
   if(!list.length){tb.innerHTML='<tr><td colspan="6"><div class="emp"><div class="ei">🏢</div><div class="et">Kayıt yok</div></div></td></tr>';return;}
-  list.sort((a,b)=>new Date(b.dt)-new Date(a.dt)).forEach(e=>{
+  tb.innerHTML=list.sort((a,b)=>new Date(b.dt)-new Date(a.dt)).map(e=>{
     const d=DEPTS.find(x=>x.name===e.nm);
-    tb.innerHTML+=`<tr><td>${fd(e.dt)}</td><td>${d?d.icon:''} ${e.nm}</td><td><span class="bdg ${e.ty==='Gelir'?'bgg':'bgr'}">${e.ty}</span></td><td>${e.ds}</td><td><strong style="color:${e.ty==='Gelir'?'var(--p)':'var(--danger)'}">₺${fmt(e.am)}</strong></td>
+    return`<tr><td>${fd(e.dt)}</td><td>${d?d.icon:''} ${e.nm}</td><td><span class="bdg ${e.ty==='Gelir'?'bgg':'bgr'}">${e.ty}</span></td><td>${e.ds}</td><td><strong style="color:${e.ty==='Gelir'?'var(--p)':'var(--danger)'}">₺${fmt(e.am)}</strong></td>
     <td><div class="tda"><button class="btn ba xs" onclick="editDept('${e.id}')">✏️</button><button class="btn bd2 xs" onclick="delDept('${e.id}')">🗑</button></div></td></tr>`;
-  });
+  }).join('');
 }
-function delDept(id){if(!confirm('Silinsin mi?'))return;DB.depts=DB.depts.filter(e=>e.id!==id);saveDB();autoExportXL();rDC();rDH();showN('🗑 Silindi');}
+function delDept(id){if(!confirm('Silinsin mi?'))return;DB.depts=DB.depts.filter(e=>e.id!==id);saveDB();schedXL();rDC();rDH();showN('🗑 Silindi');}
 
 // ── REPORTS ──
 function sRT(id){
@@ -1409,16 +1430,25 @@ function exAll(){
 }
 
 // ── STATS ──
+// Cache for stat elements to avoid repeated DOM lookups
+let _statEls={};
+function _gel(id){return _statEls[id]||(_statEls[id]=document.getElementById(id));}
+
 function updStats(){
   const cash=DB.dons.filter(d=>d.ty==='Nakit').reduce((a,d)=>a+Number(d.am||0),0);
   const gbCash=DB.gb.filter(g=>g.ty==='Nakit').reduce((a,g)=>a+Number(g.am||0),0);
   const kCash=DB.kumbs.reduce((a,k)=>a+Number(k.f6||0),0);
   const now=new Date();
   const mCash=DB.dons.filter(d=>{const dt=new Date(d.dt);return dt.getMonth()===now.getMonth()&&dt.getFullYear()===now.getFullYear()&&d.ty==='Nakit';}).reduce((a,d)=>a+Number(d.am||0),0);
-  document.getElementById('sd').textContent=DB.donors.length;document.getElementById('sb2').textContent=DB.bens.length;document.getElementById('so').textContent=DB.orphans.length;document.getElementById('st').textContent='₺'+fmt(cash);document.getElementById('sm').textContent='₺'+fmt(mCash);
-  document.getElementById('skumb').textContent='₺'+fmt(kCash);
-  document.getElementById('hd').textContent=DB.donors.length;document.getElementById('hb').textContent=DB.bens.length;document.getElementById('ho').textContent=DB.orphans.length;document.getElementById('ht').textContent='₺'+fmt(cash+gbCash+kCash);
-  rDash();
+  // Batch all DOM writes in one rAF frame — zero jank
+  requestAnimationFrame(()=>{
+    _gel('sd').textContent=DB.donors.length;_gel('sb2').textContent=DB.bens.length;_gel('so').textContent=DB.orphans.length;
+    _gel('st').textContent='₺'+fmt(cash);_gel('sm').textContent='₺'+fmt(mCash);_gel('skumb').textContent='₺'+fmt(kCash);
+    _gel('hd').textContent=DB.donors.length;_gel('hb').textContent=DB.bens.length;_gel('ho').textContent=DB.orphans.length;
+    _gel('ht').textContent='₺'+fmt(cash+gbCash+kCash);
+    // Only refresh dash if visible
+    if(document.getElementById('page-dash').classList.contains('ac'))rDash();
+  });
 }
 function rDash(){
   const rec=document.getElementById('drec');if(!rec)return;
@@ -1433,7 +1463,15 @@ function rDash(){
 }
 
 // ── INIT ──
+// ── DEBOUNCED SEARCH RENDERS (declared after render fns are defined) ──
+let dRd,dRb,dRDon,dRo,dRgb,dRk;
+function initDebounce(){
+  dRd=debounce(rD);dRb=debounce(rB);dRDon=debounce(rDon);
+  dRo=debounce(rO);dRgb=debounce(rGB);dRk=debounce(rKumb);
+}
+
 function init(){
+  initDebounce();
   loadDB();
   // Set today's dates
   ['donf1','odf1','gbf5','kf1','dpf1'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=today();});
