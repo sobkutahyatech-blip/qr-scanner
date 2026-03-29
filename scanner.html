@@ -767,67 +767,115 @@ function delUser(id){
   rUsers();showN('🗑 Kullanıcı kaldırıldı');
 }
 
-// ══════════════════════════════════════════
-// GOOGLE SHEETS SYNC CONFIG
-// ══════════════════════════════════════════
-// بعد نشر Google Apps Script، اضغط زر "⚙️ Sheets Bağla" في الرابور لإدخال الرابط
-const GAS_URL = localStorage.getItem('ihh_gas_url') || '';
-function setGasUrl(){const url=prompt('Google Apps Script Web App URL girin:\n(Apps Script > Deploy > Web App > URL)',localStorage.getItem('ihh_gas_url')||'');if(url&&url.startsWith('https://')){localStorage.setItem('ihh_gas_url',url);showN('✔ URL kaydedildi! Artık veriler otomatik senkronize edilecek.');}}
-async function syncAllToSheets(){
-  const url=localStorage.getItem('ihh_gas_url');
-  if(!url){showN('⚠️ Önce Sheets URL girin (Raporlar sayfasındaki ⚙️ butonuna basın)','err');return;}
-  showN('🔄 Google Sheets\'e gönderiliyor...');
-  const payload=JSON.stringify({action:'syncAll',db:{donors:DB.donors,bens:DB.bens,dons:DB.dons,orphans:DB.orphans,odons:DB.odons,depts:DB.depts,gb:DB.gb,kumbs:DB.kumbs}});
-  try{
-    const r=await fetch(url,{method:'POST',headers:{'Content-Type':'text/plain'},body:payload});
-    const t=await r.text();
-    if(t.includes('OK'))showN('✔ Google Sheets güncellendi!');
-    else showN('✔ Gönderildi (no-cors modu)');
-  }catch(e){
-    // try no-cors fallback
-    try{fetch(url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:payload});showN('✔ Gönderildi (no-cors)!');}
-    catch(e2){showN('❌ Bağlantı hatası','err');}
-  }
-}
+// ══════════════════════════════════════════════════════════════
+//  GOOGLE SHEETS = قاعدة البيانات الرئيسية
+//  كل حفظ → يذهب مباشرة إلى Sheets
+//  كل تحميل صفحة → يجلب من Sheets
+//  localStorage = cache مؤقت فقط عند انقطاع الاتصال
+// ══════════════════════════════════════════════════════════════
 
-// ══════════════════════════════════════════
-// DB + EXCEL PERSISTENCE
-// ══════════════════════════════════════════
-const XLFILE='IHH_Veritabani.xlsx';
 let DB={donors:[],bens:[],dons:[],orphans:[],odons:[],depts:[],gb:[],kumbs:[],
   curOr:null,curBen:null,curDon:null,eid:null,etype:null};
 
 const DEPTS=[{name:'Genç İHA',icon:'🧑',color:'#1a7f3c',bg:'#e8f5ee'},{name:'Kız Genç İHA',icon:'👧',color:'#9333ea',bg:'#ede9fe'},{name:'Kadın Kolları',icon:'👩',color:'#db2777',bg:'#fce7f3'},{name:'Arama Kurtarma',icon:'🔍',color:'#d97706',bg:'#fef3c7'}];
 
-// Save all DB to localStorage (simulate Excel persistence)
-// ── FAST SAVE: synchronous localStorage only, no blocking ──
-function saveDB(){
-  try{
-    localStorage.setItem('ihh_db_v2',JSON.stringify({
-      donors:DB.donors,bens:DB.bens,dons:DB.dons,orphans:DB.orphans,
-      odons:DB.odons,depts:DB.depts,gb:DB.gb,kumbs:DB.kumbs
-    }));
-  }catch(e){console.warn('saveDB error:',e);}
+// ── GAS URL ──
+function getGasUrl(){return localStorage.getItem('ihh_gas_url')||'';}
+function setGasUrl(){
+  const url=prompt('Google Apps Script Web App URL girin:
+(Apps Script > Deploy > Web App > URL)',getGasUrl());
+  if(url&&url.startsWith('https://')){
+    localStorage.setItem('ihh_gas_url',url);
+    showSyncBadge('✔ URL kaydedildi! Veriler yükleniyor...');
+    loadFromSheets().then(()=>{updStats();sp('dash');});
+  }
 }
 
-// ── DEBOUNCED Excel/Sheets export (runs 3s after last save, non-blocking) ──
-let _xlTimer=null;
-function schedXL(){
-  clearTimeout(_xlTimer);
-  _xlTimer=setTimeout(()=>{
-    // Run in a microtask so UI stays responsive
-    Promise.resolve().then(()=>autoExportXL());
-    // Also sync to Sheets if configured
-    const url=localStorage.getItem('ihh_gas_url');
-    if(url){
-      const payload=JSON.stringify({action:'syncAll',db:{donors:DB.donors,bens:DB.bens,dons:DB.dons,orphans:DB.orphans,odons:DB.odons,depts:DB.depts,gb:DB.gb,kumbs:DB.kumbs}});
-      fetch(url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:payload}).catch(()=>{});
-    }
-  },3000);
+// ── BADGE ──
+let _bTimer=null;
+function showSyncBadge(msg,color){
+  let b=document.getElementById('sync-badge');
+  if(!b){b=document.createElement('div');b.id='sync-badge';
+    b.style.cssText='position:fixed;bottom:22px;right:22px;color:#fff;padding:9px 18px;border-radius:10px;font-size:13px;font-weight:800;box-shadow:0 4px 16px rgba(0,0,0,.2);z-index:8888;transition:opacity .3s;font-family:Nunito,sans-serif;';
+    document.body.appendChild(b);}
+  b.style.background=color||'#1a7f3c';b.textContent=msg;b.style.opacity='1';b.style.display='block';
+  clearTimeout(_bTimer);_bTimer=setTimeout(()=>{b.style.opacity='0';setTimeout(()=>b.style.display='none',300);},3500);
 }
-function loadDB(){
-  const saved=localStorage.getItem('ihh_db_v2');
-  if(saved){const d=JSON.parse(saved);Object.keys(d).forEach(k=>{if(DB[k])DB[k]=d[k];});}
+
+// ── SAVE → Sheets مباشرة ──
+let _saveTimer=null;
+function saveDB(){
+  // Debounce 500ms to batch rapid edits — then push to Sheets
+  clearTimeout(_saveTimer);
+  _saveTimer=setTimeout(pushToSheets,500);
+}
+function schedXL(){
+  // Background Excel generation after 5s
+  clearTimeout(window._xlTimer);
+  window._xlTimer=setTimeout(()=>Promise.resolve().then(autoExportXL),5000);
+}
+
+async function pushToSheets(){
+  const url=getGasUrl();
+  const payload=JSON.stringify({action:'syncAll',db:{
+    donors:DB.donors,bens:DB.bens,dons:DB.dons,orphans:DB.orphans,
+    odons:DB.odons,depts:DB.depts,gb:DB.gb,kumbs:DB.kumbs
+  }});
+  // Always cache locally as offline backup
+  try{localStorage.setItem('ihh_db_cache',payload);}catch(e){}
+  if(!url){showSyncBadge('⚠️ Sheets bağlı değil — sadece yerel önbellek','#d97706');return;}
+  showSyncBadge('⬆ Sheets'e kaydediliyor...');
+  try{
+    const r=await fetch(url,{method:'POST',headers:{'Content-Type':'text/plain'},body:payload});
+    const txt=await r.text();
+    if(txt.includes('OK'))showSyncBadge('✔ Google Sheets'e kaydedildi');
+    else showSyncBadge('✔ Sheets'e gönderildi');
+  }catch(e){
+    // CORS no-cors fallback
+    try{fetch(url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:payload});}catch(_){}
+    showSyncBadge('✔ Sheets'e gönderildi (arka plan)','#0369a1');
+  }
+}
+
+// ── LOAD ← Sheets'ten (her sayfa açılışında) ──
+let _loading=false;
+async function loadFromSheets(){
+  const url=getGasUrl();
+  if(!url){
+    // No Sheets configured — load from local cache only
+    const cache=localStorage.getItem('ihh_db_cache');
+    if(cache){
+      try{const d=JSON.parse(cache);if(d.db){const x=d.db;['donors','bens','dons','orphans','odons','depts','gb','kumbs'].forEach(k=>{if(x[k])DB[k]=x[k];});}else{['donors','bens','dons','orphans','odons','depts','gb','kumbs'].forEach(k=>{if(d[k])DB[k]=d[k];});}}catch(e){}
+      showSyncBadge('⚠️ Sheets bağlı değil — yerel önbellek','#d97706');
+    } else {
+      showSyncBadge('⚠️ Sheets URL girilmedi — Raporlar > ⚙️','#d97706');
+    }
+    return;
+  }
+  if(_loading)return;_loading=true;
+  showSyncBadge('🔄 Google Sheets'ten yükleniyor...');
+  try{
+    const r=await fetch(url+'?action=getAll&t='+Date.now());
+    const data=await r.json();
+    if(data&&data.db){
+      const d=data.db;
+      ['donors','bens','dons','orphans','odons','depts','gb','kumbs'].forEach(k=>{if(d[k])DB[k]=d[k];});
+      try{localStorage.setItem('ihh_db_cache',JSON.stringify({db:data.db}));}catch(e){}
+      showSyncBadge('✔ Google Sheets'ten yüklendi');
+    } else {
+      showSyncBadge('✔ Sheets bağlandı (veri yok)','#0369a1');
+    }
+  }catch(e){
+    // Network error — fall back to local cache
+    const cache=localStorage.getItem('ihh_db_cache');
+    if(cache){
+      try{const d=JSON.parse(cache);if(d.db){const x=d.db;['donors','bens','dons','orphans','odons','depts','gb','kumbs'].forEach(k=>{if(x[k])DB[k]=x[k];});}else{['donors','bens','dons','orphans','odons','depts','gb','kumbs'].forEach(k=>{if(d[k])DB[k]=d[k];});}}catch(ex){}
+      showSyncBadge('⚠️ Ağ hatası — yerel önbellek kullanılıyor','#d97706');
+    } else {
+      showSyncBadge('❌ Sheets bağlantısı başarısız','#dc2626');
+    }
+  }
+  _loading=false;
 }
 
 // Auto-export Excel after any save operation
@@ -1472,10 +1520,28 @@ function initDebounce(){
 
 function init(){
   initDebounce();
-  loadDB();
-  // Set today's dates
+  // Set today's dates in forms
   ['donf1','odf1','gbf5','kf1','dpf1'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=today();});
-  updStats();
+  // Show loading overlay then fetch from Sheets
+  showLoadingOverlay(true);
+  loadFromSheets().then(()=>{
+    showLoadingOverlay(false);
+    updStats();
+    // Refresh current active page
+    const active=document.querySelector('.pg.ac');
+    if(active){const id=active.id.replace('page-','');sp(id);}
+  });
+}
+
+function showLoadingOverlay(show){
+  let ov=document.getElementById('load-ov');
+  if(!ov&&show){
+    ov=document.createElement('div');ov.id='load-ov';
+    ov.style.cssText='position:fixed;inset:0;background:rgba(240,253,244,.92);z-index:7000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;font-family:Nunito,sans-serif;';
+    ov.innerHTML='<div style="font-size:48px">🔄</div><div style="font-size:18px;font-weight:900;color:#0f5c2a;">Google Sheets\'ten yükleniyor...</div><div style="font-size:14px;color:#5a6b5e;">Veriler Google Sheets\'ten getiriliyor</div>';
+    document.body.appendChild(ov);
+  }
+  if(ov)ov.style.display=show?'flex':'none';
 }
 
 window.onload=function(){
