@@ -780,10 +780,11 @@ let DB={donors:[],bens:[],dons:[],orphans:[],odons:[],depts:[],gb:[],kumbs:[],
 const DEPTS=[{name:'Genç İHA',icon:'🧑',color:'#1a7f3c',bg:'#e8f5ee'},{name:'Kız Genç İHA',icon:'👧',color:'#9333ea',bg:'#ede9fe'},{name:'Kadın Kolları',icon:'👩',color:'#db2777',bg:'#fce7f3'},{name:'Arama Kurtarma',icon:'🔍',color:'#d97706',bg:'#fef3c7'}];
 
 // ── GAS URL ──
+// --- GAS URL ---
 function getGasUrl(){return localStorage.getItem('ihh_gas_url')||'';}
 function setGasUrl(){
-  const url=prompt('Google Apps Script Web App URL girin:
-(Apps Script > Deploy > Web App > URL)',getGasUrl());
+  const url=prompt(`Google Apps Script Web App URL girin:
+(Apps Script > Deploy > Web App > URL)`,getGasUrl());
   if(url&&url.startsWith('https://')){
     localStorage.setItem('ihh_gas_url',url);
     showSyncBadge('✔ URL kaydedildi! Veriler yükleniyor...');
@@ -824,16 +825,16 @@ async function pushToSheets(){
   // Always cache locally as offline backup
   try{localStorage.setItem('ihh_db_cache',payload);}catch(e){}
   if(!url){showSyncBadge('⚠️ Sheets bağlı değil — sadece yerel önbellek','#d97706');return;}
-  showSyncBadge('⬆ Sheets'e kaydediliyor...');
+  showSyncBadge(`⬆ Sheets'e kaydediliyor...`);
   try{
     const r=await fetch(url,{method:'POST',headers:{'Content-Type':'text/plain'},body:payload});
     const txt=await r.text();
-    if(txt.includes('OK'))showSyncBadge('✔ Google Sheets'e kaydedildi');
-    else showSyncBadge('✔ Sheets'e gönderildi');
+    if(txt.includes('OK'))showSyncBadge(`✔ Google Sheets'e kaydedildi`);
+    else showSyncBadge(`✔ Sheets'e gönderildi`);
   }catch(e){
     // CORS no-cors fallback
     try{fetch(url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:payload});}catch(_){}
-    showSyncBadge('✔ Sheets'e gönderildi (arka plan)','#0369a1');
+    showSyncBadge(`✔ Sheets'e gönderildi (arka plan)`,'#0369a1');
   }
 }
 
@@ -853,18 +854,18 @@ async function loadFromSheets(){
     return;
   }
   if(_loading)return;_loading=true;
-  showSyncBadge('🔄 Google Sheets'ten yükleniyor...');
-  try{
-    const r=await fetch(url+'?action=getAll&t='+Date.now());
-    const data=await r.json();
-    if(data&&data.db){
-      const d=data.db;
-      ['donors','bens','dons','orphans','odons','depts','gb','kumbs'].forEach(k=>{if(d[k])DB[k]=d[k];});
-      try{localStorage.setItem('ihh_db_cache',JSON.stringify({db:data.db}));}catch(e){}
-      showSyncBadge('✔ Google Sheets'ten yüklendi');
-    } else {
-      showSyncBadge('✔ Sheets bağlandı (veri yok)','#0369a1');
-    }
+showSyncBadge(`🔄 Google Sheets'ten yükleniyor...`);
+try{
+  const r=await fetch(url+'?action=getAll&t='+Date.now());
+  const data=await r.json();
+  if(data&&data.db){
+    const d=data.db;
+    ['donors','bens','dons','orphans','odons','depts','gb','kumbs'].forEach(k=>{if(d[k])DB[k]=d[k];});
+    try{localStorage.setItem('ihh_db_cache',JSON.stringify({db:data.db}));}catch(e){}
+    showSyncBadge(`✔ Google Sheets'ten yüklendi`);
+  } else {
+    showSyncBadge('✔ Sheets bağlandı (veri yok)','#0369a1');
+  }
   }catch(e){
     // Network error — fall back to local cache
     const cache=localStorage.getItem('ihh_db_cache');
