@@ -715,7 +715,7 @@ async function doLogin(){
   const u=USERS.find(x=>x.email===em);
   if(!u){lerr('le1','Bu e-posta ile kayıtlı kullanıcı bulunamadı.');return;}
   const h=await sha256(pw);
-  if(h!==u.hash){lerr('le1','Şifre hatalı. Varsayılan: ihh2025');return;}
+  if(h!==u.hash){lerr('le1','Şifre hatalı.');return;}
   u.lastLogin=new Date().toISOString();
   localStorage.setItem(USERS_KEY,JSON.stringify(USERS));
   sessionStorage.setItem(SESS_KEY,JSON.stringify({id:u.id,name:u.name,email:u.email,role:u.role}));
